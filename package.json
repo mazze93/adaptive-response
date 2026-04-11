@@ -6,6 +6,7 @@
     "dev:api": "pnpm --filter @adaptive/api dev",
     "dev:demo": "pnpm --filter @adaptive/demo dev",
     "test": "pnpm -r --filter './packages/**' test",
+    "smoke": "node scripts/smoke.mjs",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
