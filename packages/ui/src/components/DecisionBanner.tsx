@@ -3,15 +3,15 @@ import type { Decision } from "@adaptive/sdk";
 // ─── Mode → colour mapping ────────────────────────────────────────────────────
 
 const MODE_COLOR: Record<Decision["mode"], string> = {
-  answer:  "#1a7f4b",
+  answer: "#1a7f4b",
   clarify: "#9a5b00",
-  hybrid:  "#1a5fa0",
+  hybrid: "#1a5fa0",
 };
 
 const RISK_COLOR: Record<Decision["risk_level"], string> = {
-  low:    "#1a7f4b",
+  low: "#1a7f4b",
   medium: "#9a5b00",
-  high:   "#c0392b",
+  high: "#c0392b",
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -24,8 +24,7 @@ export function DecisionBanner({ decision }: DecisionBannerProps) {
   const { mode, confidence, ambiguity_level, risk_level } = decision;
 
   return (
-    <div
-      role="banner"
+    <header
       style={{
         display: "flex",
         flexWrap: "wrap",
@@ -38,11 +37,11 @@ export function DecisionBanner({ decision }: DecisionBannerProps) {
         fontSize: "0.8rem",
       }}
     >
-      <Chip label="mode"       value={mode}            color={MODE_COLOR[mode]} />
+      <Chip label="mode" value={mode} color={MODE_COLOR[mode]} />
       <Chip label="confidence" value={`${Math.round(confidence * 100)}%`} color="#555" />
-      <Chip label="ambiguity"  value={ambiguity_level} color="#555" />
-      <Chip label="risk"       value={risk_level}      color={RISK_COLOR[risk_level]} />
-    </div>
+      <Chip label="ambiguity" value={ambiguity_level} color="#555" />
+      <Chip label="risk" value={risk_level} color={RISK_COLOR[risk_level]} />
+    </header>
   );
 }
 

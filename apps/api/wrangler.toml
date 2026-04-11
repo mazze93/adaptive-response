@@ -1,5 +1,5 @@
-name            = "adaptive-api"
-main            = "src/index.ts"
+name                = "adaptive-api"
+main                = "src/index.ts"
 compatibility_date  = "2024-05-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -11,6 +11,19 @@ compatibility_flags = ["nodejs_compat"]
 ANTHROPIC_MODEL      = "claude-sonnet-4-6"
 # Comma-separated list of allowed origins; "*" for open access
 ALLOWED_ORIGINS      = "*"
+
+# ── Rate limiting ─────────────────────────────────────────────────────────────
+# 60 requests per 60-second window, keyed on client IP.
+# Adjust limit/period before deploying to production.
+
+[[unsafe.bindings]]
+name         = "RATE_LIMITER"
+type         = "ratelimit"
+namespace_id = "1"
+
+[unsafe.bindings.simple]
+limit  = 60
+period = 60
 
 # ── Development overrides ────────────────────────────────────────────────────
 [env.dev]

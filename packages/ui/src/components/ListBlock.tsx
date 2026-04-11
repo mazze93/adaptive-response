@@ -31,7 +31,7 @@ export function ListBlock({ title, items, accentColor = "#64748b" }: ListBlockPr
       <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
         {items.map((item, i) => (
           <li
-            key={i}
+            key={item}
             style={{
               fontSize: "0.9rem",
               lineHeight: 1.65,

@@ -6,9 +6,9 @@
 
 export type {
   AdaptiveResponse,
-  Answer,
   Alternative,
   AmbiguityLevel,
+  Answer,
   Decision,
   DecisionMode,
   IntentType,

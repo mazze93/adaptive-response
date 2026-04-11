@@ -37,7 +37,7 @@ export function AlternativesBlock({ items }: AlternativesBlockProps) {
       <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
         {items.map((alt, i) => (
           <li
-            key={i}
+            key={alt.condition}
             style={{
               padding: "0.9rem 1rem",
               borderBottom: i < items.length - 1 ? "1px solid #f1f5f9" : "none",

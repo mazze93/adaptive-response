@@ -34,8 +34,7 @@ export function ResponseRenderer({ data, className }: ResponseRendererProps) {
         display: "flex",
         flexDirection: "column",
         gap: "0.75rem",
-        fontFamily:
-          "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         maxWidth: "780px",
       }}
     >
@@ -44,37 +43,25 @@ export function ResponseRenderer({ data, className }: ResponseRendererProps) {
 
       {/* Clarifying questions — shown in clarify / hybrid modes */}
       {clarifying_questions && clarifying_questions.length > 0 && (
-        <ListBlock
-          title="To clarify"
-          items={clarifying_questions}
-          accentColor="#f59e0b"
-        />
+        <ListBlock title="To clarify" items={clarifying_questions} accentColor="#f59e0b" />
       )}
 
       {/* Summary */}
       <TldrBlock text={answer.tldr} />
 
       {/* Body sections */}
-      {answer.sections?.map((section, i) => (
-        <SectionBlock key={i} section={section} />
+      {answer.sections?.map((section) => (
+        <SectionBlock key={section.title} section={section} />
       ))}
 
       {/* Assumptions */}
       {answer.assumptions && answer.assumptions.length > 0 && (
-        <ListBlock
-          title="Assumptions"
-          items={answer.assumptions}
-          accentColor="#64748b"
-        />
+        <ListBlock title="Assumptions" items={answer.assumptions} accentColor="#64748b" />
       )}
 
       {/* Risks */}
       {answer.risks && answer.risks.length > 0 && (
-        <ListBlock
-          title="Risks"
-          items={answer.risks}
-          accentColor="#ef4444"
-        />
+        <ListBlock title="Risks" items={answer.risks} accentColor="#ef4444" />
       )}
 
       {/* Alternatives */}

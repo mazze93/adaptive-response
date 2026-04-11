@@ -5,17 +5,17 @@
  * Includes a static fixture so the UI works without a running API.
  */
 
-import { useState, useTransition } from "react";
 import type { AdaptiveResponse } from "@adaptive/sdk";
 import { AdaptiveClient } from "@adaptive/sdk";
 import { ResponseRenderer } from "@adaptive/ui";
+import { useState, useTransition } from "react";
 
 // ─── API client ──────────────────────────────────────────────────────────────
 // During `pnpm dev:demo` the Vite proxy forwards /v1 → localhost:8787 (Worker).
 // Point VITE_API_URL at a deployed Worker URL for production builds.
 
 const client = new AdaptiveClient({
-  baseUrl: import.meta.env["VITE_API_URL"] ?? "",
+  baseUrl: import.meta.env.VITE_API_URL ?? "",
 });
 
 // ─── Static fixture ──────────────────────────────────────────────────────────
@@ -49,9 +49,9 @@ const FIXTURE: AdaptiveResponse = {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function App() {
-  const [query,    setQuery]    = useState("");
+  const [query, setQuery] = useState("");
   const [response, setResponse] = useState<AdaptiveResponse>(FIXTURE);
-  const [error,    setError]    = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent) {
@@ -102,8 +102,8 @@ export function App() {
       >
         <textarea
           value={query}
-          onChange={e => setQuery(e.target.value)}
-          onKeyDown={e => {
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
             if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
               handleSubmit(e as unknown as React.FormEvent);
             }

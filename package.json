@@ -2,14 +2,18 @@
   "name": "adaptive-response",
   "private": true,
   "scripts": {
-    "build":     "pnpm -r --filter './packages/**' build",
-    "dev:api":   "pnpm --filter @adaptive/api dev",
-    "dev:demo":  "pnpm --filter @adaptive/demo dev",
-    "test":      "pnpm -r --filter './packages/**' test",
+    "build": "pnpm -r --filter './packages/**' build",
+    "dev:api": "pnpm --filter @adaptive/api dev",
+    "dev:demo": "pnpm --filter @adaptive/demo dev",
+    "test": "pnpm -r --filter './packages/**' test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
     "typecheck": "pnpm -r typecheck",
-    "clean":     "find . -name 'dist' -not -path '*/node_modules/*' | xargs rm -rf"
+    "clean": "find . -name 'dist' -not -path '*/node_modules/*' | xargs rm -rf"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.11",
     "typescript": "^5.4.5"
   },
   "engines": {

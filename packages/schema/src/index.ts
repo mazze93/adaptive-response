@@ -71,9 +71,11 @@ export const AdaptiveResponseSchema = z
   })
   .strict()
   .superRefine((val, ctx) => {
-    const needsClarification =
-      val.decision.mode === "clarify" || val.decision.mode === "hybrid";
-    if (needsClarification && (!val.clarifying_questions || val.clarifying_questions.length === 0)) {
+    const needsClarification = val.decision.mode === "clarify" || val.decision.mode === "hybrid";
+    if (
+      needsClarification &&
+      (!val.clarifying_questions || val.clarifying_questions.length === 0)
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["clarifying_questions"],

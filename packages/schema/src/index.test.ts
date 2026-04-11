@@ -10,11 +10,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import {
-  safeValidateAdaptiveResponse,
-  validateAdaptiveResponse,
-} from "./index.js";
 import type { AdaptiveResponse } from "./index.js";
+import { safeValidateAdaptiveResponse, validateAdaptiveResponse } from "./index.js";
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -53,7 +50,12 @@ describe("happy paths", () => {
   it("accepts a valid clarify-mode response with clarifying_questions", () => {
     const result = safeValidateAdaptiveResponse(
       makeResponse({
-        decision: { mode: "clarify", confidence: 0.4, ambiguity_level: "high", risk_level: "medium" },
+        decision: {
+          mode: "clarify",
+          confidence: 0.4,
+          ambiguity_level: "high",
+          risk_level: "medium",
+        },
         clarifying_questions: ["What timeframe are you asking about?"],
       }),
     );
@@ -63,7 +65,12 @@ describe("happy paths", () => {
   it("accepts a valid hybrid-mode response with clarifying_questions", () => {
     const result = safeValidateAdaptiveResponse(
       makeResponse({
-        decision: { mode: "hybrid", confidence: 0.65, ambiguity_level: "medium", risk_level: "low" },
+        decision: {
+          mode: "hybrid",
+          confidence: 0.65,
+          ambiguity_level: "medium",
+          risk_level: "low",
+        },
         clarifying_questions: ["Which platform?"],
       }),
     );
@@ -82,7 +89,9 @@ describe("happy paths", () => {
 
   it("accepts tokens_estimated: 0", () => {
     const result = safeValidateAdaptiveResponse(
-      makeResponse({ meta: { intent_type: "informational", complexity_score: 1, tokens_estimated: 0 } }),
+      makeResponse({
+        meta: { intent_type: "informational", complexity_score: 1, tokens_estimated: 0 },
+      }),
     );
     expect(result.success).toBe(true);
   });
@@ -99,7 +108,7 @@ describe("cross-field: clarifying_questions required for clarify/hybrid", () => 
     );
     expect(result.success).toBe(false);
     if (!result.success) {
-      const paths = result.error.issues.map(i => i.path.join("."));
+      const paths = result.error.issues.map((i) => i.path.join("."));
       expect(paths).toContain("clarifying_questions");
     }
   });
@@ -127,7 +136,12 @@ describe("cross-field: clarifying_questions required for clarify/hybrid", () => 
   it("rejects hybrid mode with no clarifying_questions", () => {
     const result = safeValidateAdaptiveResponse(
       makeResponse({
-        decision: { mode: "hybrid", confidence: 0.65, ambiguity_level: "medium", risk_level: "low" },
+        decision: {
+          mode: "hybrid",
+          confidence: 0.65,
+          ambiguity_level: "medium",
+          risk_level: "low",
+        },
       }),
     );
     expect(result.success).toBe(false);
@@ -144,14 +158,18 @@ describe("cross-field: clarifying_questions required for clarify/hybrid", () => 
 describe("field-level violations", () => {
   it("rejects confidence below 0", () => {
     const result = safeValidateAdaptiveResponse(
-      makeResponse({ decision: { mode: "answer", confidence: -0.1, ambiguity_level: "low", risk_level: "low" } }),
+      makeResponse({
+        decision: { mode: "answer", confidence: -0.1, ambiguity_level: "low", risk_level: "low" },
+      }),
     );
     expect(result.success).toBe(false);
   });
 
   it("rejects confidence above 1", () => {
     const result = safeValidateAdaptiveResponse(
-      makeResponse({ decision: { mode: "answer", confidence: 1.1, ambiguity_level: "low", risk_level: "low" } }),
+      makeResponse({
+        decision: { mode: "answer", confidence: 1.1, ambiguity_level: "low", risk_level: "low" },
+      }),
     );
     expect(result.success).toBe(false);
   });
@@ -165,15 +183,15 @@ describe("field-level violations", () => {
 
   it("rejects negative tokens_estimated", () => {
     const result = safeValidateAdaptiveResponse(
-      makeResponse({ meta: { intent_type: "informational", complexity_score: 5, tokens_estimated: -1 } }),
+      makeResponse({
+        meta: { intent_type: "informational", complexity_score: 5, tokens_estimated: -1 },
+      }),
     );
     expect(result.success).toBe(false);
   });
 
   it("rejects empty tldr", () => {
-    const result = safeValidateAdaptiveResponse(
-      makeResponse({ answer: { tldr: "" } }),
-    );
+    const result = safeValidateAdaptiveResponse(makeResponse({ answer: { tldr: "" } }));
     expect(result.success).toBe(false);
   });
 
