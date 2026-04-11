@@ -1,0 +1,17 @@
+name            = "adaptive-api"
+main            = "src/index.ts"
+compatibility_date  = "2024-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Variables ────────────────────────────────────────────────────────────────
+# ANTHROPIC_API_KEY must be stored as a secret, never in plaintext:
+#   wrangler secret put ANTHROPIC_API_KEY
+
+[vars]
+ANTHROPIC_MODEL      = "claude-sonnet-4-6"
+# Comma-separated list of allowed origins; "*" for open access
+ALLOWED_ORIGINS      = "*"
+
+# ── Development overrides ────────────────────────────────────────────────────
+[env.dev]
+name = "adaptive-api-dev"
