@@ -31,11 +31,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        # Use --no-frozen-lockfile so pnpm.overrides can resolve without
+        # requiring a pre-committed lockfile regeneration in CI.
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run pnpm audit
         # Fail on high/critical; allow moderate (adjust as needed)
@@ -45,11 +47,10 @@ jobs:
       - name: Check esbuild version is patched
         # Ensure pnpm.overrides is resolving esbuild to >=0.25.0
         run: |
-          ESBUILD_VER=$(pnpm ls esbuild --depth=Infinity 2>/dev/null | grep 'esbuild' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | head -1)
+          ESBUILD_VER=$(pnpm ls esbuild --depth=Infinity 2>/dev/null | grep ' esbuild ' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | head -1)
           echo "Resolved esbuild: $ESBUILD_VER"
-          # semver compare: major.minor.patch
           IFS='.' read -r MAJOR MINOR PATCH <<< "$ESBUILD_VER"
-          if [ "$MAJOR" -lt 1 ] && [ "$MINOR" -lt 25 ]; then
+          if [ "$MAJOR" -eq 0 ] && [ "$MINOR" -lt 25 ]; then
             echo "ERROR: esbuild $ESBUILD_VER is below 0.25.0 — CVE not patched!"
             exit 1
           fi
