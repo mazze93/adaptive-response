@@ -1,0 +1,56 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run every Monday at 08:00 UTC
+    - cron: '0 8 * * 1'
+
+# Always use GitHub-hosted runners so Dependabot alerts
+# and security scans are never blocked by self-hosted runner availability.
+jobs:
+  audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest   # GitHub-hosted — never blocked by self-hosted runner
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run pnpm audit
+        # Fail on high/critical; allow moderate (adjust as needed)
+        run: pnpm audit --audit-level=high
+        continue-on-error: false
+
+      - name: Check esbuild version is patched
+        # Ensure pnpm.overrides is resolving esbuild to >=0.25.0
+        run: |
+          ESBUILD_VER=$(pnpm ls esbuild --depth=Infinity 2>/dev/null | grep 'esbuild' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | head -1)
+          echo "Resolved esbuild: $ESBUILD_VER"
+          # semver compare: major.minor.patch
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$ESBUILD_VER"
+          if [ "$MAJOR" -lt 1 ] && [ "$MINOR" -lt 25 ]; then
+            echo "ERROR: esbuild $ESBUILD_VER is below 0.25.0 — CVE not patched!"
+            exit 1
+          fi
+          echo "OK: esbuild $ESBUILD_VER >= 0.25.0"
