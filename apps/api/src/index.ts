@@ -131,7 +131,7 @@ function jsonResponse(
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const requestId = crypto.randomUUID();
-    const cors = buildCorsHeaders(request, env.ALLOWED_ORIGINS ?? "*");
+    const cors = buildCorsHeaders(request, env.ALLOWED_ORIGINS ?? "");
 
     // Pre-flight
     if (request.method === "OPTIONS") {
