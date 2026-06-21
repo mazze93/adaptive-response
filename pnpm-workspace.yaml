@@ -13,3 +13,4 @@ overrides:
   ws: ">=8.21.0"
   postcss: ">=8.5.10"
   "@babel/core": ">=7.29.1"
+  vite: ">=6.4.3"
