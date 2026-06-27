@@ -9,8 +9,12 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 ANTHROPIC_MODEL      = "claude-sonnet-4-6"
-# Comma-separated list of allowed origins; "*" for open access
-ALLOWED_ORIGINS      = "*"
+# Comma-separated allowlist of origins permitted to call the API cross-origin.
+# Deny-by-default: empty means no cross-origin access (the Worker omits the
+# Access-Control-Allow-Origin header). Set your real front-end origin(s) before
+# deploying, e.g. "https://app.example.com,https://demo.example.com".
+# Never set this to "*" in production — wildcard CORS is a hard stop.
+ALLOWED_ORIGINS      = ""
 
 # ── Rate limiting ─────────────────────────────────────────────────────────────
 # 60 requests per 60-second window, keyed on client IP.
