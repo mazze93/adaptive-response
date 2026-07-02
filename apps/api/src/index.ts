@@ -12,7 +12,7 @@
  *
  * Env vars (set in wrangler.toml [vars]):
  *   ANTHROPIC_MODEL   — defaults to "claude-sonnet-4-6"
- *   ALLOWED_ORIGINS   — comma-separated CORS origins, or "*"
+ *   ALLOWED_ORIGINS   — comma-separated CORS origins; empty = deny all cross-origin
  *
  * Bindings (set in wrangler.toml):
  *   RATE_LIMITER      — Workers Rate Limiting binding
@@ -80,6 +80,14 @@ interface AdaptiveResponse {
   };
 }`;
 
+// ─── Hardened response headers ────────────────────────────────────────────────
+
+const SECURITY_HEADERS: Record<string, string> = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "no-referrer",
+};
+
 // ─── CORS helpers ─────────────────────────────────────────────────────────────
 
 /**
@@ -120,6 +128,7 @@ function jsonResponse(
     status,
     headers: {
       ...cors,
+      ...SECURITY_HEADERS,
       "Content-Type": "application/json",
       "X-Request-ID": requestId,
     },
@@ -137,7 +146,7 @@ export default {
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
-        headers: { ...cors, "X-Request-ID": requestId },
+        headers: { ...cors, ...SECURITY_HEADERS, "X-Request-ID": requestId },
       });
     }
 
@@ -153,8 +162,11 @@ export default {
       return jsonResponse({ error: "Not found" }, 404, cors, requestId);
     }
 
-    // Rate limiting — keyed on client IP, degrades gracefully if binding absent
-    const clientIp = request.headers.get("CF-Connecting-IP") ?? "unknown";
+    // Rate limiting — keyed on client IP, degrades gracefully if binding absent.
+    // Falls back to a random UUID so each anonymous request gets its own bucket
+    // instead of all sharing a single "unknown" key (which would allow bypass
+    // in any environment that doesn't inject CF-Connecting-IP).
+    const clientIp = request.headers.get("CF-Connecting-IP") ?? crypto.randomUUID();
     if (env.RATE_LIMITER) {
       const { success } = await env.RATE_LIMITER.limit({ key: clientIp });
       if (!success) {
@@ -231,8 +243,10 @@ export default {
         body: JSON.stringify(anthropicReq),
       });
     } catch (e) {
+      // Log internally via Cloudflare Logpush/tail — never expose network errors to callers
+      console.error("[502] upstream_network_error", requestId, String(e));
       return jsonResponse(
-        { error: "Failed to reach Anthropic API", detail: String(e), requestId },
+        { error: "Upstream error", requestId },
         502,
         cors,
         requestId,
@@ -241,8 +255,11 @@ export default {
 
     if (!anthropicRes.ok) {
       const errText = await anthropicRes.text().catch(() => "");
+      // Log upstream API errors internally — do not return raw Anthropic error bodies
+      // as they may contain model/policy details useful to attackers.
+      console.error("[502] upstream_api_error", requestId, anthropicRes.status, errText);
       return jsonResponse(
-        { error: "Anthropic API error", detail: errText, requestId },
+        { error: "Upstream error", requestId },
         502,
         cors,
         requestId,

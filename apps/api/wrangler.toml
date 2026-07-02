@@ -1,6 +1,6 @@
 name                = "adaptive-api"
 main                = "src/index.ts"
-compatibility_date  = "2024-05-01"
+compatibility_date  = "2026-07-01"
 compatibility_flags = ["nodejs_compat"]
 
 # ── Variables ────────────────────────────────────────────────────────────────
@@ -13,7 +13,8 @@ ANTHROPIC_MODEL      = "claude-sonnet-4-6"
 # Deny-by-default: empty means no cross-origin access (the Worker omits the
 # Access-Control-Allow-Origin header). Set your real front-end origin(s) before
 # deploying, e.g. "https://app.example.com,https://demo.example.com".
-# Never set this to "*" in production — wildcard CORS is a hard stop.
+# NEVER set this to "*" in production — wildcard CORS allows any origin to call
+# your API and read the response. There is no valid production use case for it.
 ALLOWED_ORIGINS      = ""
 
 # ── Rate limiting ─────────────────────────────────────────────────────────────
