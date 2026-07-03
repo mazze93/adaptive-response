@@ -442,7 +442,9 @@ describe("Anthropic glue", () => {
     );
 
     expect(res.status).toBe(502);
-    expect((await readBody(res)).error).toMatch(/reach anthropic/i);
+    // Hardened Worker returns a generic "Upstream error" (no internal detail
+    // leaked). The retry count below is what distinguishes this path.
+    expect((await readBody(res)).error).toMatch(/upstream error/i);
     expect(fetchMock).toHaveBeenCalledTimes(3); // initial + 2 retries
   });
 
@@ -454,7 +456,7 @@ describe("Anthropic glue", () => {
     );
 
     expect(res.status).toBe(502);
-    expect((await readBody(res)).error).toMatch(/anthropic api error/i);
+    expect((await readBody(res)).error).toMatch(/upstream error/i);
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 

@@ -1,6 +1,16 @@
 # Adaptive Response
 
-A schema-driven AI response engine. A Cloudflare Worker receives a query, calls the Anthropic API with a structured-output prompt, validates the JSON response against a Zod schema, and returns a typed object that a React UI renders into a readable layout.
+> Schema-driven AI response engine — Cloudflare Worker → Anthropic Claude → Zod-validated typed JSON → React UI.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://typescriptlang.org)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com)
+[![Zod](https://img.shields.io/badge/Zod-schema--validated-green)](https://zod.dev)
+
+**Problem:** LLM responses are unstructured and unpredictable in production pipelines.  
+**Solution:** Force the model to emit a typed, validated JSON object — with confidence scores, clarifying-question routing, and risk metadata — every time.
+
+Every response is run through a Zod schema at the API boundary. If the model hallucinates a shape, the Worker returns a 502 before bad data reaches your frontend.
 
 ---
 
@@ -73,7 +83,7 @@ Set in `apps/api/wrangler.toml` under `[vars]`:
 | Variable | Default | Description |
 |---|---|---|
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-6` | Model used for all requests. |
-| `ALLOWED_ORIGINS` | `*` | Comma-separated CORS origins, or `*` for open access. |
+| `ALLOWED_ORIGINS` | `""` | Comma-separated CORS origins. **Empty = deny all cross-origin requests.** Set your production origin(s) before deploying. Never use `*` in production. |
 
 For the demo app, set `VITE_API_URL` to point at a deployed Worker (leave unset in dev to use the Vite proxy):
 
@@ -133,3 +143,15 @@ interface AdaptiveResponse {
 ```
 
 `@adaptive/schema` is the canonical definition. The Worker and the SDK both import from it — never define these types elsewhere.
+
+---
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for the responsible disclosure policy.
+
+Key hardening decisions in this project:
+- `ALLOWED_ORIGINS` defaults to `""` (deny-by-default). You must explicitly allowlist origins.
+- `ANTHROPIC_API_KEY` is stored as a Wrangler secret — it never appears in `wrangler.toml` or source.
+- Worker responses include `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Referrer-Policy: no-referrer`.
+- Upstream (Anthropic) errors are logged internally via `console.error` and never returned to callers.
