@@ -35,6 +35,9 @@ importers:
       typescript:
         specifier: ^5.4.5
         version: 5.9.3
+      vitest:
+        specifier: ^3.2.6
+        version: 3.2.6(esbuild@0.28.1)
       wrangler:
         specifier: ^4.0.0
         version: 4.81.1(@cloudflare/workers-types@4.20260410.1)
@@ -2757,7 +2760,7 @@ snapshots:
       std-env: 3.10.0
       tinybench: 2.9.0
       tinyexec: 0.3.2
-      tinyglobby: 0.2.16
+      tinyglobby: 0.2.17
       tinypool: 1.1.1
       tinyrainbow: 2.0.0
       vite: 8.0.16(esbuild@0.28.1)
