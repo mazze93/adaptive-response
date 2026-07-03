@@ -7,7 +7,7 @@
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import worker from "./index.js";
+import worker, { fetchWithRetry } from "./index.js";
 
 // ─── Test env ─────────────────────────────────────────────────────────────
 
@@ -82,6 +82,165 @@ function anthropicEnvelope(
 
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+/**
+ * A `fetch` stub that plays back a scripted sequence of steps. A `Response`
+ * is returned; an `Error` is thrown. The final step repeats for any further
+ * calls (so `[resp503]` means "always 503").
+ */
+function scriptedFetch(steps: Array<Response | Error>) {
+  let i = 0;
+  const mock = vi.fn(async () => {
+    const step = steps[Math.min(i, steps.length - 1)];
+    i += 1;
+    if (step instanceof Error) throw step;
+    return step;
+  });
+  vi.stubGlobal("fetch", mock);
+  return mock;
+}
+
+/**
+ * Run `fn` under fake timers, flushing all pending backoff sleeps so
+ * retry-heavy paths resolve instantly and deterministically (no real waiting,
+ * no jitter flakiness).
+ */
+async function withAdvancedTimers<T>(fn: () => Promise<T>): Promise<T> {
+  vi.useFakeTimers();
+  try {
+    const p = fn();
+    await vi.advanceTimersByTimeAsync(30_000);
+    return await p;
+  } finally {
+    vi.useRealTimers();
+  }
+}
+
+// ─── fetchWithRetry (exponential backoff + full jitter) ─────────────────────
+
+describe("fetchWithRetry", () => {
+  const noopSleep = () => Promise.resolve();
+
+  it("returns immediately on success without sleeping", async () => {
+    const fetchMock = scriptedFetch([new Response("ok", { status: 200 })]);
+    const sleeps: number[] = [];
+
+    const res = await fetchWithRetry(
+      "https://x",
+      { method: "POST" },
+      {
+        sleep: async (ms) => {
+          sleeps.push(ms);
+        },
+      },
+    );
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(sleeps).toEqual([]);
+  });
+
+  it("retries a retryable status (529) then returns the success", async () => {
+    const fetchMock = scriptedFetch([
+      new Response("overloaded", { status: 529 }),
+      new Response("ok", { status: 200 }),
+    ]);
+
+    const res = await fetchWithRetry("https://x", {}, { sleep: noopSleep });
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("retries a thrown network error then returns the success", async () => {
+    const fetchMock = scriptedFetch([new Error("ECONNRESET"), new Response("ok", { status: 200 })]);
+
+    const res = await fetchWithRetry("https://x", {}, { sleep: noopSleep });
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("gives up after maxRetries and returns the last retryable response", async () => {
+    const fetchMock = scriptedFetch([new Response("busy", { status: 503 })]);
+
+    const res = await fetchWithRetry("https://x", {}, { maxRetries: 2, sleep: noopSleep });
+
+    expect(res.status).toBe(503);
+    expect(fetchMock).toHaveBeenCalledTimes(3); // initial + 2 retries
+  });
+
+  it("throws after maxRetries on a persistent network error", async () => {
+    const fetchMock = scriptedFetch([new Error("ECONNREFUSED")]);
+
+    await expect(
+      fetchWithRetry("https://x", {}, { maxRetries: 2, sleep: noopSleep }),
+    ).rejects.toThrow(/ECONNREFUSED/);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("does NOT retry a non-retryable 4xx (e.g. 400)", async () => {
+    const fetchMock = scriptedFetch([new Response("bad request", { status: 400 })]);
+    const sleeps: number[] = [];
+
+    const res = await fetchWithRetry(
+      "https://x",
+      {},
+      {
+        sleep: async (ms) => {
+          sleeps.push(ms);
+        },
+      },
+    );
+
+    expect(res.status).toBe(400);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(sleeps).toEqual([]);
+  });
+
+  it("uses exponential backoff with full jitter, capped at maxDelayMs", async () => {
+    scriptedFetch([new Response("busy", { status: 503 })]);
+    const sleeps: number[] = [];
+
+    // random() = 1 -> full jitter picks the ceiling of each window.
+    await fetchWithRetry(
+      "https://x",
+      {},
+      {
+        maxRetries: 3,
+        baseDelayMs: 100,
+        maxDelayMs: 300,
+        random: () => 1,
+        sleep: async (ms) => {
+          sleeps.push(ms);
+        },
+      },
+    );
+
+    // windows: 100*2^0=100, 100*2^1=200, 100*2^2=400 -> capped to 300
+    expect(sleeps).toEqual([100, 200, 300]);
+  });
+
+  it("full jitter keeps each delay within [0, window]", async () => {
+    scriptedFetch([new Response("busy", { status: 503 })]);
+    const sleeps: number[] = [];
+
+    await fetchWithRetry(
+      "https://x",
+      {},
+      {
+        maxRetries: 2,
+        baseDelayMs: 100,
+        random: () => 0.5, // midpoint of each window
+        sleep: async (ms) => {
+          sleeps.push(ms);
+        },
+      },
+    );
+
+    expect(sleeps).toEqual([50, 100]); // 0.5*100, 0.5*200
+  });
 });
 
 // ─── GET /health ──────────────────────────────────────────────────────────
@@ -275,25 +434,45 @@ describe("Anthropic glue", () => {
     expect((await readBody(res)).decision?.mode).toBe("answer");
   });
 
-  it("502 when the Anthropic fetch itself throws (network failure)", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => {
-        throw new Error("ECONNREFUSED");
-      }),
+  it("retries then 502s when the Anthropic fetch keeps throwing (network failure)", async () => {
+    const fetchMock = scriptedFetch([new Error("ECONNREFUSED")]);
+
+    const res = await withAdvancedTimers(() =>
+      worker.fetch(postRespond({ query: "hi" }), makeEnv()),
     );
 
-    const res = await worker.fetch(postRespond({ query: "hi" }), makeEnv());
     expect(res.status).toBe(502);
-    expect((await readBody(res)).error).toMatch(/reach anthropic/i);
+    // Hardened Worker returns a generic "Upstream error" (no internal detail
+    // leaked). The retry count below is what distinguishes this path.
+    expect((await readBody(res)).error).toMatch(/upstream error/i);
+    expect(fetchMock).toHaveBeenCalledTimes(3); // initial + 2 retries
   });
 
-  it("502 when Anthropic responds non-2xx", async () => {
-    stubAnthropic(new Response("upstream error", { status: 500 }));
+  it("retries then 502s when Anthropic keeps responding non-2xx (500)", async () => {
+    const fetchMock = scriptedFetch([new Response("upstream error", { status: 500 })]);
 
-    const res = await worker.fetch(postRespond({ query: "hi" }), makeEnv());
+    const res = await withAdvancedTimers(() =>
+      worker.fetch(postRespond({ query: "hi" }), makeEnv()),
+    );
+
     expect(res.status).toBe(502);
-    expect((await readBody(res)).error).toMatch(/anthropic api error/i);
+    expect((await readBody(res)).error).toMatch(/upstream error/i);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("recovers when a transient 529 is followed by a 200", async () => {
+    const fetchMock = scriptedFetch([
+      new Response("overloaded", { status: 529 }),
+      anthropicEnvelope(JSON.stringify(validModelResponse())),
+    ]);
+
+    const res = await withAdvancedTimers(() =>
+      worker.fetch(postRespond({ query: "hi" }), makeEnv()),
+    );
+
+    expect(res.status).toBe(200);
+    expect((await readBody(res)).decision?.mode).toBe("answer");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("502 when the model returns valid-JSON-envelope but non-JSON text content", async () => {
