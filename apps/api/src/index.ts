@@ -249,14 +249,34 @@ export default {
       );
     }
 
-    const anthropicData = (await anthropicRes.json()) as AnthropicResponse;
+    // Parse the Anthropic response body. A 200 with a non-JSON body, or valid
+    // JSON that lacks the expected `content` array, must degrade to a 502
+    // rather than throwing unhandled and escaping the CORS/requestId envelope.
+    let rawText: string;
+    let anthropicUsage: AnthropicResponse["usage"];
+    try {
+      const anthropicData = (await anthropicRes.json()) as AnthropicResponse;
+      if (!Array.isArray(anthropicData.content)) {
+        throw new Error("missing content array");
+      }
 
-    // Extract text from first text block
-    const rawText = anthropicData.content
-      .filter((b) => b.type === "text")
-      .map((b) => b.text)
-      .join("")
-      .trim();
+      // Extract text from first text block
+      rawText = anthropicData.content
+        .filter((b) => b.type === "text")
+        .map((b) => b.text)
+        .join("")
+        .trim();
+
+      // Carry usage forward for token estimation below.
+      anthropicUsage = anthropicData.usage;
+    } catch (e) {
+      return jsonResponse(
+        { error: "Anthropic API returned a malformed response", detail: String(e), requestId },
+        502,
+        cors,
+        requestId,
+      );
+    }
 
     // Strip markdown fences if the model wrapped the JSON despite instructions.
     // Handles: ```json\n{...}\n``` and ```\n{...}\n```
@@ -294,9 +314,9 @@ export default {
     }
 
     // Attach token usage to meta if available
-    if (anthropicData.usage) {
+    if (anthropicUsage) {
       validation.data.meta.tokens_estimated =
-        anthropicData.usage.input_tokens + anthropicData.usage.output_tokens;
+        anthropicUsage.input_tokens + anthropicUsage.output_tokens;
     }
 
     return jsonResponse(validation.data, 200, cors, requestId);
