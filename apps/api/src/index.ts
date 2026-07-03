@@ -154,7 +154,12 @@ export interface RetryOptions {
 }
 
 function backoffDelay(attempt: number, base: number, max: number, random: () => number): number {
-  const window = Math.min(base * 2 ** attempt, max);
+function backoffDelay(attempt: number, base: number, max: number, random: () => number): number {
+  const cap = Math.min(base * 2 ** attempt, max);
+  // Full jitter: a random point in [0, cap]. Spreads retries out and avoids
+  // thundering-herd synchronisation across concurrent clients.
+  return Math.round(random() * cap);
+}
   // Full jitter: a random point in [0, window]. Spreads retries out and avoids
   // thundering-herd synchronisation across concurrent clients.
   return Math.round(random() * window);
