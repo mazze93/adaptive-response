@@ -231,7 +231,7 @@ describe("body validation", () => {
   it("400 when query exceeds 8000 chars", async () => {
     const res = await worker.fetch(postRespond({ query: "a".repeat(8001) }), makeEnv());
     expect(res.status).toBe(400);
-    expect((await readBody(res)).error).toMatch(/8[ {2}]?000/);
+    expect((await readBody(res)).error).toMatch(/8[ _]?000/);
   });
 
   it("400 when context exceeds 8000 chars", async () => {
