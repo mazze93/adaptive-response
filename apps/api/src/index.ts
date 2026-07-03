@@ -126,6 +126,68 @@ function jsonResponse(
   });
 }
 
+// ─── Retry with exponential backoff + full jitter ─────────────────────────────
+
+/** HTTP statuses worth retrying — transient upstream conditions. */
+const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 529]);
+
+export interface RetryOptions {
+  /** Additional attempts after the first (default 2 → up to 3 total). */
+  maxRetries?: number;
+  /** Backoff base in ms (default 250). */
+  baseDelayMs?: number;
+  /** Per-attempt delay ceiling in ms (default 2000). */
+  maxDelayMs?: number;
+  /** Injected for tests; defaults to a real setTimeout-based sleep. */
+  sleep?: (ms: number) => Promise<void>;
+  /** Injected for deterministic jitter in tests; defaults to Math.random. */
+  random?: () => number;
+}
+
+function backoffDelay(attempt: number, base: number, max: number, random: () => number): number {
+  const window = Math.min(base * 2 ** attempt, max);
+  // Full jitter: a random point in [0, window]. Spreads retries out and avoids
+  // thundering-herd synchronisation across concurrent clients.
+  return Math.round(random() * window);
+}
+
+/**
+ * `fetch` with retry on transient failures — network errors and retryable HTTP
+ * statuses (see RETRYABLE_STATUS) — using exponential backoff with full jitter.
+ *
+ * Non-retryable responses (e.g. 4xx) return immediately, as does the response
+ * from the final attempt (the caller decides how to handle a lingering error
+ * status). A network error that persists through the last attempt is rethrown.
+ */
+export async function fetchWithRetry(
+  input: string,
+  init: RequestInit,
+  opts: RetryOptions = {},
+): Promise<Response> {
+  const maxRetries = opts.maxRetries ?? 2;
+  const baseDelayMs = opts.baseDelayMs ?? 250;
+  const maxDelayMs = opts.maxDelayMs ?? 2000;
+  const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const random = opts.random ?? Math.random;
+
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetch(input, init);
+      if (RETRYABLE_STATUS.has(res.status) && attempt < maxRetries) {
+        await sleep(backoffDelay(attempt, baseDelayMs, maxDelayMs, random));
+        continue;
+      }
+      return res;
+    } catch (e) {
+      if (attempt < maxRetries) {
+        await sleep(backoffDelay(attempt, baseDelayMs, maxDelayMs, random));
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
 // ─── Worker entry point ──────────────────────────────────────────────────────
 
 export default {
@@ -221,7 +283,9 @@ export default {
 
     let anthropicRes: Response;
     try {
-      anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+      // Retries transient failures (network errors, 429/5xx/529) with
+      // exponential backoff + full jitter before giving up.
+      anthropicRes = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
