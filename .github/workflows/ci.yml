@@ -38,7 +38,7 @@ jobs:
         # pre-committed lockfile regeneration (matches security.yml).
         run: pnpm install --no-frozen-lockfile
 
-      - name: Typecheck
+      - name: Build and typecheck
         # Builds packages/schema→sdk→ui first (typecheck depends on their dist).
         run: pnpm build && pnpm typecheck
 
