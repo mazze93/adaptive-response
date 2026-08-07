@@ -1,0 +1,52 @@
+name: CodeQL
+
+# Static analysis / code scanning. A branch protection rule on `main` requires
+# code scanning results before merge — this workflow is what produces them.
+# Two analyses, one per language GitHub detects in this repo:
+#   - actions                 (the workflows themselves)
+#   - javascript-typescript   (packages/, apps/)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly baseline scan so advisories published after a commit still surface.
+    - cron: "17 5 * * 1"
+
+# Least privilege: the analysis needs to read code and write SARIF results only.
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # upload SARIF to the code-scanning API
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [actions, javascript-typescript]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+
+      # No compiled build step needed for analysis (tsup/tsc --noEmit), so
+      # autobuild is a no-op but harmless and future-proof.
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v4
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"
