@@ -341,8 +341,13 @@ export default {
       // Carry usage forward for token estimation below.
       anthropicUsage = anthropicData.usage;
     } catch (e) {
+      console.error("Malformed Anthropic API response", {
+        requestId,
+        error: e instanceof Error ? (e.stack ?? e.message) : String(e),
+      });
+
       return jsonResponse(
-        { error: "Anthropic API returned a malformed response", detail: String(e), requestId },
+        { error: "Anthropic API returned a malformed response", requestId },
         502,
         cors,
         requestId,
