@@ -1,0 +1,214 @@
+/* ============================================================
+   Cipher Gothic — Foundational tokens
+   Color, type, spacing, motion. Import this everywhere.
+   ============================================================ */
+
+/* Webfonts — Google Fonts (CDN). For production, self-host the same families. */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500&display=swap');
+
+:root {
+  /* ── Color: ground ──────────────────────────────────────── */
+  --cg-bg:           #0B1119;   /* Obsidian ground — the dark page */
+  --cg-bg-rise:     #0F1822;   /* Faint surface lift  */
+  --cg-surface:     #111A23;   /* Cards, panels  */
+  --cg-surface-2:   #152230;   /* Inputs, hovered surface  */
+
+  /* ── Color: teal (the signal) ───────────────────────────── */
+  --cg-teal:        #34C3B9;   /* Glass-fiber teal — primary accent */
+  --cg-teal-warm:   #2BD3C6;   /* Pulsing-signal teal — glows, hero */
+  --cg-teal-dim:    #1C6964;   /* Deep teal — rules, borders */
+  --cg-teal-ghost:  #0E2525;   /* Hover field — barely-there teal wash */
+  --cg-teal-faint:  #1A4A40;   /* Section dividers */
+
+  /* ── Color: coral (the wound / signature) ───────────────── */
+  --cg-coral:       #E85A4A;   /* Used ONCE per composition. Discipline. */
+  --cg-coral-dim:   #A04030;   /* Pressed / muted coral */
+
+  /* ── Color: foreground (text) ───────────────────────────── */
+  --cg-fg:          #EBE7E0;   /* Bone-white — primary text */
+  --cg-fg-bright:  #F2F4F8;   /* Heading whites, max contrast */
+  --cg-fg-mid:     #5A6C7C;   /* Body & muted */
+  --cg-fg-sub:     #374856;   /* Metadata, post indices */
+  --cg-fg-faint:   #232E36;   /* Decorative — barely there */
+
+  /* ── Color: structure ───────────────────────────────────── */
+  --cg-rule:        #1A3A38;   /* Standard rule line */
+  --cg-rule-soft:   #1E2A36;   /* Softer rule, for grids */
+
+  /* ── Semantic aliases (use these in components) ─────────── */
+  --color-bg:        var(--cg-bg);
+  --color-surface:   var(--cg-surface);
+  --color-text:      var(--cg-fg);
+  --color-text-dim:  var(--cg-fg-mid);
+  --color-text-faint:var(--cg-fg-sub);
+  --color-accent:    var(--cg-teal);
+  --color-signal:    var(--cg-coral);
+  --color-border:    var(--cg-rule);
+
+  /* ── Type families ──────────────────────────────────────── */
+  --font-serif:     "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --font-sans:      "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono:      "JetBrains Mono", "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ── Type scale (base 16px) ─────────────────────────────── */
+  --fs-mono-xs:    0.6rem;    /* 9.6px — coordinate marks */
+  --fs-mono-sm:    0.65rem;   /* 10.4px — labels, dates */
+  --fs-mono-md:    0.75rem;   /* 12px — eyebrows */
+  --fs-sans-sm:    0.8rem;    /* 12.8px — UI body */
+  --fs-sans-md:    0.95rem;   /* 15.2px — UI primary */
+  --fs-sans-lg:    1.05rem;   /* 16.8px — emphasis */
+  --fs-serif-sm:   1.1rem;    /* 17.6px — pull serif */
+  --fs-serif-md:   1.4rem;    /* 22.4px — h3 */
+  --fs-serif-lg:   2rem;      /* 32px — h2 */
+  --fs-serif-xl:   3rem;      /* 48px — h1 small */
+  --fs-display:    clamp(2.5rem, 6vw, 5rem);  /* @kind font */
+
+  /* ── Tracking ───────────────────────────────────────────── */
+  --tracking-tight:  -0.01em;  /* @kind font */
+  --tracking-normal: 0;        /* @kind font */
+  --tracking-wide:   0.05em;   /* @kind font */
+  --tracking-wider:  0.1em;    /* @kind font */
+  --tracking-mono:   0.08em;   /* @kind font */
+  --tracking-label:  0.22em;   /* @kind font */
+  --tracking-caps:   0.35em;   /* @kind font */
+
+  /* ── Line height ────────────────────────────────────────── */
+  --lh-tight:    1.05;  /* @kind font */
+  --lh-snug:     1.3;   /* @kind font */
+  --lh-normal:   1.6;   /* @kind font */
+  --lh-prose:    1.85;  /* @kind font */
+
+  /* ── Spacing (4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96) ── */
+  --space-1:   0.25rem;
+  --space-2:   0.5rem;
+  --space-3:   0.75rem;
+  --space-4:   1rem;
+  --space-5:   1.5rem;
+  --space-6:   2rem;
+  --space-7:   3rem;
+  --space-8:   4rem;
+  --space-9:   6rem;
+
+  /* ── Radii — minimal. Cipher Gothic is sharp ─────────────── */
+  --radius-xs:  2px;   /* code, tags */
+  --radius-sm:  3px;   /* default */
+  --radius-md:  4px;   /* buttons, post links */
+  --radius-lg:  6px;   /* images, surfaces */
+
+  /* ── Motion ─────────────────────────────────────────────── */
+  --ease-out:        cubic-bezier(0.22, 1, 0.36, 1);  /* @kind other */
+  --ease-out-soft:   cubic-bezier(0.16, 1, 0.3, 1);   /* @kind other */
+  --ease-in-out:     cubic-bezier(0.4, 0, 0.2, 1);    /* @kind other */
+  --dur-fast:        150ms;  /* @kind other */
+  --dur-base:        250ms;  /* @kind other */
+  --dur-slow:        450ms;  /* @kind other */
+  --dur-thesis:      900ms;  /* @kind other */
+
+  /* ── Measure ────────────────────────────────────────────── */
+  --measure-prose: 720px;  /* @kind spacing */
+  --measure-page:  780px;  /* @kind spacing */
+
+  /* ── Borders ────────────────────────────────────────────── */
+  --hairline: 1px solid var(--cg-rule);
+}
+
+/* ============================================================
+   Semantic typography mixins
+   Apply via class — these are the system's "voices".
+   ============================================================ */
+
+.cg-eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+  font-weight: 400;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--cg-teal);
+}
+
+.cg-section-mark {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-md);
+  font-weight: 400;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--cg-teal);
+  opacity: 0.85;
+}
+
+.cg-h1 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--cg-fg-bright);
+}
+
+.cg-h2 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: var(--fs-serif-lg);
+  line-height: var(--lh-snug);
+  color: var(--cg-fg-bright);
+}
+
+.cg-h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--fs-serif-md);
+  line-height: var(--lh-snug);
+  color: var(--cg-fg-bright);
+}
+
+.cg-thesis {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  line-height: 1.48;
+  letter-spacing: 0.01em;
+  color: var(--cg-fg);
+}
+
+.cg-body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sans-md);
+  line-height: var(--lh-normal);
+  color: var(--cg-fg-mid);
+}
+
+.cg-prose {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: 1.05rem;
+  line-height: var(--lh-prose);
+  color: var(--cg-fg);
+}
+
+.cg-mono-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+  font-weight: 400;
+  letter-spacing: var(--tracking-mono);
+  color: var(--cg-fg-sub);
+  text-transform: uppercase;
+}
+
+.cg-coord {
+  /* coordinate marks, footer annotations */
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+  letter-spacing: var(--tracking-wider);
+  color: var(--cg-fg-sub);
+}
+
+.cg-code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  color: var(--cg-teal);
+  background: rgba(52, 195, 185, 0.08);
+  border: 1px solid var(--cg-rule);
+  padding: 0.1em 0.4em;
+  border-radius: var(--radius-xs);
+}

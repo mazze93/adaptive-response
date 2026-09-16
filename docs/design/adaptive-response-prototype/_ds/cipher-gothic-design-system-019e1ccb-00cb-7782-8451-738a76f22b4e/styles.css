@@ -1,0 +1,9 @@
+/* ============================================================
+   styles.css — Cipher Gothic Design System
+   Single entry point. Consumers link THIS one file. It re-exports
+   the Cipher Gothic foundation (color, type, spacing, motion tokens).
+   The blog/homepage kit stylesheets stay local to their kits and are
+   linked from each kit's own page.
+   ============================================================ */
+
+@import url('colors_and_type.css');

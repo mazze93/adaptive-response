@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #eef2f6; }
+    a { color: #3b82f6; }
+    a:hover { color: #1a5fa0; }
+  </style>
+</helmet>
+
+<div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #eef2f6; min-height: 100vh; padding: 64px 32px 96px; display: flex; flex-direction: column; align-items: center; gap: 72px; color: #0f172a;">
+
+  <header style="max-width: 880px; text-align: center; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; justify-content: center;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #3b82f6; background: #3b82f61a; padding: 5px 12px; border-radius: 999px;">System Diagram</span>
+    </div>
+    <h1 style="margin: 0; font-size: 40px; font-weight: 800; letter-spacing: -0.01em;">Adaptive Response</h1>
+    <p style="margin: 0; font-size: 17px; color: #64748b; line-height: 1.55;">A schema-driven response layer that sits between an LLM and your product — every model output is forced into typed, validated JSON before it ever reaches the UI.</p>
+  </header>
+
+  <!-- SECTION 1: What it is -->
+  <section style="width: 100%; max-width: 1080px; display: flex; flex-direction: column; gap: 28px;" data-screen-label="What it is">
+    <div style="display: flex; align-items: baseline; gap: 14px;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #cbd5e1;">01</span>
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <h2 style="margin: 0; font-size: 24px; font-weight: 700;">What it is</h2>
+        <p style="margin: 0; font-size: 14px; color: #64748b;">The model never returns free text — it returns a typed decision object</p>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 28px; flex-wrap: wrap; align-items: stretch;">
+      <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #c0392b;">Problem</span>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #334155;">LLM responses are unstructured and unpredictable in production pipelines — shape, tone, and completeness vary call to call.</p>
+        </div>
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #1a7f4b;">Solution</span>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #334155;">Force the model to emit one typed object every time — decision metadata, confidence, and answer content, all enforced by a Zod schema at the API boundary.</p>
+        </div>
+      </div>
+
+      <div style="flex: 1.4 1 460px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 12px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b;">AdaptiveResponse</span>
+
+        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+          <sc-for list="{{ schemaRows }}" as="row" hint-placeholder-count="4">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+              <div style="display: flex; flex-direction: column; gap: 1px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #0f172a;">{{ row.label }}</span>
+                <span style="font-size: 12px; color: #94a3b8;">{{ row.desc }}</span>
+              </div>
+              <sc-if value="{{ row.chips }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; gap: 6px;">
+                  <sc-for list="{{ row.chips }}" as="c" hint-placeholder-count="3">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 5px; text-transform: capitalize; color: {{ c.color }}; background: {{ c.bg }};">{{ c.name }}</span>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin: 0; font-size: 12.5px; color: #94a3b8; line-height: 1.5;">Defined once in <code style="font-family: 'JetBrains Mono', monospace; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; color: #475569;">@adaptive/schema</code> — imported by every other package. If the model's shape doesn't match, the request fails before bad data reaches the frontend.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: How it works -->
+  <section style="width: 100%; max-width: 1080px; display: flex; flex-direction: column; gap: 28px;" data-screen-label="How it works">
+    <div style="display: flex; align-items: baseline; gap: 14px;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #cbd5e1;">02</span>
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <h2 style="margin: 0; font-size: 24px; font-weight: 700;">How it works</h2>
+        <p style="margin: 0; font-size: 14px; color: #64748b;">One request, five hops, from raw query to rendered UI</p>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 32px 24px; display: flex; align-items: flex-start; gap: 0; overflow-x: auto;">
+      <sc-for list="{{ pipelineSteps }}" as="step" hint-placeholder-count="5">
+        <sc-if value="{{ step.showArrow }}" hint-placeholder-val="{{ true }}">
+          <div style="flex: 0 0 32px; display: flex; align-items: center; justify-content: center; color: #cbd5e1; font-size: 20px; margin-top: 6px;">→</div>
+        </sc-if>
+        <div style="flex: 0 0 168px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 0 4px;">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: {{ step.accent }};"></div>
+          <span style="font-size: 14.5px; font-weight: 700; color: #0f172a;">{{ step.label }}</span>
+          <span style="font-size: 12px; color: #94a3b8; line-height: 1.4;">{{ step.detail }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+      <div style="flex: 1 1 300px; background: #ffffff; border: 1px solid #e2e8f0; border-left: 3px solid #c0392b; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 13.5px; font-weight: 700; color: #0f172a;">On schema mismatch</span>
+        <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.55;">A hallucinated shape never reaches the client — the Worker returns a 502 and logs the upstream error internally.</p>
+      </div>
+      <div style="flex: 1 1 300px; background: #ffffff; border: 1px solid #e2e8f0; border-left: 3px solid #1a5fa0; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 13.5px; font-weight: 700; color: #0f172a;">Decision routing</span>
+        <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.55;">The model itself chooses answer, clarify, or hybrid — the UI just reacts to whichever mode comes back.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8;">Every response carries this strip</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; border-radius: 8px; background: #f0f4f8; border-left: 4px solid #1a7f4b; width: fit-content;">
+        <sc-for list="{{ decisionChips }}" as="chip" hint-placeholder-count="4">
+          <span style="display: inline-flex; gap: 4px; align-items: center;">
+            <span style="color: #888888; text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px;">{{ chip.label }}</span>
+            <span style="font-weight: 600; color: {{ chip.color }}; background: {{ chip.bg }}; padding: 2px 7px; border-radius: 4px; text-transform: capitalize; font-size: 12px;">{{ chip.value }}</span>
+          </span>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: How it integrates -->
+  <section style="width: 100%; max-width: 1080px; display: flex; flex-direction: column; gap: 28px;" data-screen-label="How it integrates">
+    <div style="display: flex; align-items: baseline; gap: 14px;">
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #cbd5e1;">03</span>
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <h2 style="margin: 0; font-size: 24px; font-weight: 700;">How it integrates</h2>
+        <p style="margin: 0; font-size: 14px; color: #64748b;">Four packages, one dependency direction — build schema first</p>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 36px 28px; display: flex; flex-direction: column; align-items: center; gap: 0;">
+      <div style="width: 320px; background: #f8fafc; border: 1px solid #e2e8f0; border-top: 3px solid #0f172a; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #0f172a;">@adaptive/schema</span>
+        <span style="font-size: 12px; color: #64748b; line-height: 1.4;">Zod validators + inferred types — single source of truth</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 10px 0;">↓ imported by ↓</div>
+
+      <div style="display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;">
+        <sc-for list="{{ midPackages }}" as="pkg" hint-placeholder-count="3">
+          <div style="width: 260px; background: #f8fafc; border: 1px solid #e2e8f0; border-top: 3px solid {{ pkg.accent }}; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #0f172a;">{{ pkg.name }}</span>
+            <span style="font-size: 12px; color: #64748b; line-height: 1.4;">{{ pkg.desc }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 10px 0;">↓ consumed by ↓</div>
+
+      <div style="width: 320px; background: #f8fafc; border: 1px solid #e2e8f0; border-top: 3px solid #9a5b00; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #0f172a;">apps/demo</span>
+        <span style="font-size: 12px; color: #64748b; line-height: 1.4;">Vite + React app — proxies /v1 to the Worker in dev</span>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+      <sc-for list="{{ integrationSteps }}" as="s" hint-placeholder-count="3">
+        <div style="flex: 1 1 300px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: #cbd5e1;">{{ s.step }}</span>
+          <span style="font-size: 14.5px; font-weight: 700; color: #0f172a;">{{ s.title }}</span>
+          <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.55;">{{ s.body }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <footer style="max-width: 780px; text-align: center; font-size: 13px; color: #94a3b8;">
+    Grounded in <a href="https://github.com/mazze93/adaptive-response" target="_blank" rel="noopener">mazze93/adaptive-response</a> — README, schema, UI, and demo source.
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      schemaRows: [
+        { label: 'decision', desc: 'mode · confidence · ambiguity · risk', chips: [
+          { name: 'answer', color: '#1a7f4b', bg: '#1a7f4b18' },
+          { name: 'clarify', color: '#9a5b00', bg: '#9a5b0018' },
+          { name: 'hybrid', color: '#1a5fa0', bg: '#1a5fa018' },
+        ]},
+        { label: 'clarifying_questions', desc: 'present when mode ≠ answer', chips: null },
+        { label: 'answer', desc: 'tldr · sections · assumptions · alternatives · risks', chips: null },
+        { label: 'meta', desc: 'intent_type · complexity_score · tokens_estimated', chips: null },
+      ],
+      pipelineSteps: [
+        { label: 'User query', detail: 'Free-text prompt from the app', accent: '#64748b', showArrow: false },
+        { label: 'Cloudflare Worker', detail: 'POST /v1/respond', accent: '#3b82f6', showArrow: true },
+        { label: 'Anthropic Claude', detail: 'Structured-output prompt', accent: '#8b5cf6', showArrow: true },
+        { label: 'Zod validation', detail: 'AdaptiveResponseSchema.parse', accent: '#1a7f4b', showArrow: true },
+        { label: 'ResponseRenderer', detail: 'Typed props → React UI', accent: '#0f172a', showArrow: true },
+      ],
+      decisionChips: [
+        { label: 'mode', value: 'answer', color: '#1a7f4b', bg: '#1a7f4b18' },
+        { label: 'confidence', value: '92%', color: '#555555', bg: '#55555518' },
+        { label: 'ambiguity', value: 'low', color: '#555555', bg: '#55555518' },
+        { label: 'risk', value: 'low', color: '#1a7f4b', bg: '#1a7f4b18' },
+      ],
+      midPackages: [
+        { name: '@adaptive/sdk', desc: 'AdaptiveClient — typed fetch wrapper for /v1/respond', accent: '#3b82f6' },
+        { name: 'apps/api', desc: 'Cloudflare Worker — calls Anthropic, validates, returns JSON', accent: '#8b5cf6' },
+        { name: '@adaptive/ui', desc: 'ResponseRenderer, DecisionBanner, SectionBlock…', accent: '#1a7f4b' },
+      ],
+      integrationSteps: [
+        { step: '1', title: 'Install & build', body: 'pnpm install, then pnpm build — packages compile in dependency order: schema → sdk → ui.' },
+        { step: '2', title: 'Call the Worker', body: 'Any client — web, mobile, server — hits POST /v1/respond with a query and gets back typed JSON.' },
+        { step: '3', title: 'Render or consume raw', body: 'Drop in ResponseRenderer for an instant UI, or read the typed AdaptiveResponse fields directly in your own components.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>
