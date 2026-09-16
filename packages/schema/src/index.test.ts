@@ -259,7 +259,10 @@ describe("toAdaptiveResponseJsonSchema", () => {
     expect(schema.additionalProperties).toBe(false);
     expect(schema.required).toEqual(expect.arrayContaining(["decision", "answer", "meta"]));
 
-    const properties = schema.properties as Record<string, { properties?: Record<string, unknown> }>;
+    const properties = schema.properties as Record<
+      string,
+      { properties?: Record<string, unknown> }
+    >;
     expect(Object.keys(properties)).toEqual(
       expect.arrayContaining(["decision", "clarifying_questions", "answer", "meta"]),
     );

@@ -78,17 +78,14 @@ const AdaptiveResponseBaseSchema = z
   .strict();
 
 export const AdaptiveResponseSchema = AdaptiveResponseBaseSchema.superRefine((val, ctx) => {
-    const needsClarification = val.decision.mode === "clarify" || val.decision.mode === "hybrid";
-    if (
-      needsClarification &&
-      (!val.clarifying_questions || val.clarifying_questions.length === 0)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["clarifying_questions"],
-        message: `clarifying_questions must be a non-empty array when mode is "${val.decision.mode}"`,
-      });
-    }
+  const needsClarification = val.decision.mode === "clarify" || val.decision.mode === "hybrid";
+  if (needsClarification && (!val.clarifying_questions || val.clarifying_questions.length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["clarifying_questions"],
+      message: `clarifying_questions must be a non-empty array when mode is "${val.decision.mode}"`,
+    });
+  }
 });
 
 // ─── JSON Schema export ──────────────────────────────────────────────────────
@@ -117,6 +114,7 @@ export function toAdaptiveResponseJsonSchema(): Record<string, unknown> {
         },
         required: ["decision"],
       },
+      // biome-ignore lint/suspicious/noThenProperty: `then` is the JSON Schema conditional keyword, not a thenable.
       then: {
         required: ["clarifying_questions"],
         properties: { clarifying_questions: { minItems: 1 } },

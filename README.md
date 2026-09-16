@@ -10,7 +10,7 @@
 **Problem:** LLM responses are unstructured and unpredictable in production pipelines.  
 **Solution:** Force the model to emit a typed, validated JSON object — with confidence scores, clarifying-question routing, and risk metadata — every time.
 
-Every response is run through a Zod schema at the API boundary. If the model hallucinates a shape, the Worker returns a 502 before bad data reaches your frontend.
+The model is *forced* to call a tool whose `input_schema` is generated from the Zod schema at runtime, so the shape cannot drift from the contract. Every response is validated at the engine boundary; if validation fails, the engine feeds the exact Zod issues back to the model for one repair pass before giving up. Architectural decisions are traced in [`docs/adr/`](docs/adr/README.md).
 
 ---
 
@@ -18,9 +18,13 @@ Every response is run through a Zod schema at the API boundary. If the model hal
 
 ```
 User query
-  → POST /v1/respond  (Cloudflare Worker)
-  → Anthropic Messages API  (claude-sonnet-4-6)
-  → JSON parsed + validated against AdaptiveResponseSchema (Zod)
+  → POST /v1/respond  (Cloudflare Worker — thin HTTP transport)
+  → @adaptive/core generateAdaptiveResponse()
+      → Anthropic Messages API (claude-sonnet-4-6), forced tool_choice:
+        emit_adaptive_response — input_schema generated from the Zod schema
+      → tool input validated against AdaptiveResponseSchema (Zod)
+      → on validation failure: one repair pass (Zod issues fed back as an
+        error tool_result), then fail with a typed engine error
   → AdaptiveResponse returned to client
   → ResponseRenderer displays it
 ```
@@ -33,11 +37,37 @@ The model decides whether to answer directly, ask clarifying questions, or do bo
 
 | Package | Description |
 |---|---|
-| `packages/schema` | Zod validators and inferred TypeScript types. Single source of truth. |
+| `packages/schema` | Zod validators, inferred TypeScript types, and the JSON Schema export. Single source of truth. |
+| `packages/core` | Runtime-agnostic engine: forced tool-use call to Anthropic, Zod validation, one repair pass, retry/backoff. Embeddable in any modern JS runtime. |
 | `packages/sdk` | `AdaptiveClient` — typed fetch wrapper for `/v1/respond`. Re-exports all types from `@adaptive/schema`. |
 | `packages/ui` | React components: `ResponseRenderer`, `DecisionBanner`, `TldrBlock`, `SectionBlock`, `ListBlock`, `AlternativesBlock`. |
-| `apps/api` | Cloudflare Worker. Calls Anthropic, validates the response, returns `AdaptiveResponse` JSON. |
+| `apps/api` | Cloudflare Worker. Thin HTTP transport over `@adaptive/core`. |
 | `apps/demo` | Vite + React demo app. Proxies `/v1` to the local Worker in dev. |
+
+---
+
+## Embedding the engine directly
+
+You don't need the Worker to use the engine — `@adaptive/core` runs in any modern
+JS runtime (Node ≥ 20, Workers, Bun) and returns typed results instead of throwing:
+
+```ts
+import { generateAdaptiveResponse } from "@adaptive/core";
+
+const result = await generateAdaptiveResponse(
+  { query: "Should we use Postgres or D1 for this?", context: "We deploy on Cloudflare." },
+  { apiKey: env.ANTHROPIC_API_KEY },
+);
+
+if (result.ok) {
+  result.response.decision.mode; // "answer" | "clarify" | "hybrid"
+} else {
+  result.code; // "upstream_error" | "malformed_response" | "invalid_model_output"
+}
+```
+
+An MCP transport (remote on the Worker + `npx @adaptive/mcp`) is planned on top of
+the same function — see [ADR 0003](docs/adr/0003-expose-engine-as-mcp.md).
 
 ---
 
