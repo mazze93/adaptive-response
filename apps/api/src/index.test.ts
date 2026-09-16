@@ -4,10 +4,16 @@
  * We call `worker.fetch(request, env)` directly with a hand-built env, so we
  * can inject a fake RATE_LIMITER and stub global fetch (no real Anthropic
  * calls). The Worker's surface is web-standard, so plain Node/vitest suffices.
+ *
+ * These are transport-level tests: routing, CORS, rate limiting, body
+ * validation, and engine-error → HTTP-status mapping. The engine internals
+ * (tool schema, repair-pass mechanics, retry/backoff) are unit-tested in
+ * @adaptive/core; here we only exercise them end-to-end through the Worker.
  */
 
+import { ADAPTIVE_RESPONSE_TOOL_NAME } from "@adaptive/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import worker, { fetchWithRetry } from "./index.js";
+import worker from "./index.js";
 
 // ─── Test env ─────────────────────────────────────────────────────────────
 
@@ -54,6 +60,7 @@ function stubAnthropic(response: Response | (() => Response | Promise<Response>)
 /** Read a response body with the loose shape our assertions touch. */
 async function readBody(res: Response): Promise<{
   error?: string;
+  issues?: string[];
   decision?: { mode?: string };
   meta?: { tokens_estimated?: number };
 }> {
@@ -69,13 +76,20 @@ function validModelResponse() {
   };
 }
 
-/** Wrap model text in an Anthropic 200 messages envelope. */
+/**
+ * Wrap a tool input in an Anthropic 200 messages envelope. The engine forces
+ * tool_choice, so a well-formed upstream response always carries a tool_use
+ * block for ADAPTIVE_RESPONSE_TOOL_NAME.
+ */
 function anthropicEnvelope(
-  text: string,
+  input: unknown,
   usage?: { input_tokens: number; output_tokens: number },
 ): Response {
   return new Response(
-    JSON.stringify({ content: [{ type: "text", text }], ...(usage ? { usage } : {}) }),
+    JSON.stringify({
+      content: [{ type: "tool_use", id: "toolu_01", name: ADAPTIVE_RESPONSE_TOOL_NAME, input }],
+      ...(usage ? { usage } : {}),
+    }),
     { status: 200, headers: { "Content-Type": "application/json" } },
   );
 }
@@ -94,8 +108,9 @@ function scriptedFetch(steps: Array<Response | Error>) {
   const mock = vi.fn(async () => {
     const step = steps[Math.min(i, steps.length - 1)];
     i += 1;
+    if (step === undefined) throw new Error("scriptedFetch: empty script");
     if (step instanceof Error) throw step;
-    return step;
+    return step.clone();
   });
   vi.stubGlobal("fetch", mock);
   return mock;
@@ -117,132 +132,6 @@ async function withAdvancedTimers<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-// ─── fetchWithRetry (exponential backoff + full jitter) ─────────────────────
-
-describe("fetchWithRetry", () => {
-  const noopSleep = () => Promise.resolve();
-
-  it("returns immediately on success without sleeping", async () => {
-    const fetchMock = scriptedFetch([new Response("ok", { status: 200 })]);
-    const sleeps: number[] = [];
-
-    const res = await fetchWithRetry(
-      "https://x",
-      { method: "POST" },
-      {
-        sleep: async (ms) => {
-          sleeps.push(ms);
-        },
-      },
-    );
-
-    expect(res.status).toBe(200);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(sleeps).toEqual([]);
-  });
-
-  it("retries a retryable status (529) then returns the success", async () => {
-    const fetchMock = scriptedFetch([
-      new Response("overloaded", { status: 529 }),
-      new Response("ok", { status: 200 }),
-    ]);
-
-    const res = await fetchWithRetry("https://x", {}, { sleep: noopSleep });
-
-    expect(res.status).toBe(200);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
-
-  it("retries a thrown network error then returns the success", async () => {
-    const fetchMock = scriptedFetch([new Error("ECONNRESET"), new Response("ok", { status: 200 })]);
-
-    const res = await fetchWithRetry("https://x", {}, { sleep: noopSleep });
-
-    expect(res.status).toBe(200);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
-
-  it("gives up after maxRetries and returns the last retryable response", async () => {
-    const fetchMock = scriptedFetch([new Response("busy", { status: 503 })]);
-
-    const res = await fetchWithRetry("https://x", {}, { maxRetries: 2, sleep: noopSleep });
-
-    expect(res.status).toBe(503);
-    expect(fetchMock).toHaveBeenCalledTimes(3); // initial + 2 retries
-  });
-
-  it("throws after maxRetries on a persistent network error", async () => {
-    const fetchMock = scriptedFetch([new Error("ECONNREFUSED")]);
-
-    await expect(
-      fetchWithRetry("https://x", {}, { maxRetries: 2, sleep: noopSleep }),
-    ).rejects.toThrow(/ECONNREFUSED/);
-    expect(fetchMock).toHaveBeenCalledTimes(3);
-  });
-
-  it("does NOT retry a non-retryable 4xx (e.g. 400)", async () => {
-    const fetchMock = scriptedFetch([new Response("bad request", { status: 400 })]);
-    const sleeps: number[] = [];
-
-    const res = await fetchWithRetry(
-      "https://x",
-      {},
-      {
-        sleep: async (ms) => {
-          sleeps.push(ms);
-        },
-      },
-    );
-
-    expect(res.status).toBe(400);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(sleeps).toEqual([]);
-  });
-
-  it("uses exponential backoff with full jitter, capped at maxDelayMs", async () => {
-    scriptedFetch([new Response("busy", { status: 503 })]);
-    const sleeps: number[] = [];
-
-    // random() = 1 -> full jitter picks the ceiling of each window.
-    await fetchWithRetry(
-      "https://x",
-      {},
-      {
-        maxRetries: 3,
-        baseDelayMs: 100,
-        maxDelayMs: 300,
-        random: () => 1,
-        sleep: async (ms) => {
-          sleeps.push(ms);
-        },
-      },
-    );
-
-    // windows: 100*2^0=100, 100*2^1=200, 100*2^2=400 -> capped to 300
-    expect(sleeps).toEqual([100, 200, 300]);
-  });
-
-  it("full jitter keeps each delay within [0, window]", async () => {
-    scriptedFetch([new Response("busy", { status: 503 })]);
-    const sleeps: number[] = [];
-
-    await fetchWithRetry(
-      "https://x",
-      {},
-      {
-        maxRetries: 2,
-        baseDelayMs: 100,
-        random: () => 0.5, // midpoint of each window
-        sleep: async (ms) => {
-          sleeps.push(ms);
-        },
-      },
-    );
-
-    expect(sleeps).toEqual([50, 100]); // 0.5*100, 0.5*200
-  });
-});
-
 // ─── GET /health ──────────────────────────────────────────────────────────
 
 describe("GET /health", () => {
@@ -254,12 +143,11 @@ describe("GET /health", () => {
   });
 });
 
-// ─── Anthropic 200-path resilience (the deliberate core) ────────────────────
+// ─── Anthropic 200-path resilience ───────────────────────────────────────────
 //
-// These exercise malformed *successful* Anthropic responses. The fetch call
-// is wrapped in try/catch, but response *parsing* (`.json()`, `.content`) was
-// not — a 200 with a non-JSON body or a missing `content` array threw
-// unhandled, escaping the CORS/requestId envelope. Both must degrade to 502.
+// Malformed *successful* Anthropic responses (non-JSON body, missing content
+// array, missing tool_use block) must degrade to a 502 inside the
+// CORS/requestId envelope — never an unhandled throw.
 
 describe("Anthropic 200 with malformed payload", () => {
   it("maps a non-JSON 200 body to a 502 (not an unhandled throw)", async () => {
@@ -284,6 +172,19 @@ describe("Anthropic 200 with malformed payload", () => {
 
     expect(res.status).toBe(502);
     expect(res.headers.get("X-Request-ID")).toBeTruthy();
+  });
+
+  it("maps a 200 without the forced tool_use block to a 502", async () => {
+    stubAnthropic(
+      new Response(JSON.stringify({ content: [{ type: "text", text: "chatty answer" }] }), {
+        status: 200,
+      }),
+    );
+
+    const res = await worker.fetch(postRespond({ query: "hi" }), makeEnv());
+
+    expect(res.status).toBe(502);
+    expect((await readBody(res)).error).toMatch(/anthropic/i);
   });
 });
 
@@ -357,7 +258,7 @@ describe("rate limiting", () => {
   });
 
   it("degrades gracefully when no limiter binding is present", async () => {
-    stubAnthropic(anthropicEnvelope(JSON.stringify(validModelResponse())));
+    stubAnthropic(anthropicEnvelope(validModelResponse()));
     // RATE_LIMITER intentionally absent.
     const env = makeEnv();
     (env as { RATE_LIMITER?: unknown }).RATE_LIMITER = undefined;
@@ -402,12 +303,12 @@ describe("body validation", () => {
   });
 });
 
-// ─── Anthropic glue (happy path, fence-stripping, error mappings) ───────────
+// ─── Engine glue (happy path, repair pass, error mappings) ───────────────────
 
-describe("Anthropic glue", () => {
+describe("engine glue", () => {
   it("returns 200 with the validated response and injects tokens_estimated from usage", async () => {
     stubAnthropic(
-      anthropicEnvelope(JSON.stringify(validModelResponse()), {
+      anthropicEnvelope(validModelResponse(), {
         input_tokens: 10,
         output_tokens: 20,
       }),
@@ -424,14 +325,32 @@ describe("Anthropic glue", () => {
     expect(body.meta.tokens_estimated).toBe(30);
   });
 
-  it("strips markdown fences the model wraps around the JSON", async () => {
-    const fenced = `\`\`\`json\n${JSON.stringify(validModelResponse())}\n\`\`\``;
-    stubAnthropic(anthropicEnvelope(fenced));
+  it("recovers via the repair pass when the first tool input fails validation", async () => {
+    const fetchMock = scriptedFetch([
+      anthropicEnvelope({ decision: { mode: "answer" } }, { input_tokens: 10, output_tokens: 20 }),
+      anthropicEnvelope(validModelResponse(), { input_tokens: 5, output_tokens: 10 }),
+    ]);
 
     const res = await worker.fetch(postRespond({ query: "hi" }), makeEnv());
 
     expect(res.status).toBe(200);
-    expect((await readBody(res)).decision?.mode).toBe("answer");
+    expect(fetchMock).toHaveBeenCalledTimes(2); // initial + repair
+    const body = await readBody(res);
+    expect(body.decision?.mode).toBe("answer");
+    // usage summed across both model calls
+    expect(body.meta?.tokens_estimated).toBe(45);
+  });
+
+  it("502 with issues when the repair pass also fails schema validation", async () => {
+    const fetchMock = scriptedFetch([anthropicEnvelope({ decision: { mode: "answer" } })]);
+
+    const res = await worker.fetch(postRespond({ query: "hi" }), makeEnv());
+
+    expect(res.status).toBe(502);
+    expect(fetchMock).toHaveBeenCalledTimes(2); // exactly one repair, then give up
+    const body = await readBody(res);
+    expect(body.error).toMatch(/schema validation/i);
+    expect(body.issues?.length).toBeGreaterThan(0);
   });
 
   it("retries then 502s when the Anthropic fetch keeps throwing (network failure)", async () => {
@@ -463,7 +382,7 @@ describe("Anthropic glue", () => {
   it("recovers when a transient 529 is followed by a 200", async () => {
     const fetchMock = scriptedFetch([
       new Response("overloaded", { status: 529 }),
-      anthropicEnvelope(JSON.stringify(validModelResponse())),
+      anthropicEnvelope(validModelResponse()),
     ]);
 
     const res = await withAdvancedTimers(() =>
@@ -473,22 +392,5 @@ describe("Anthropic glue", () => {
     expect(res.status).toBe(200);
     expect((await readBody(res)).decision?.mode).toBe("answer");
     expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
-
-  it("502 when the model returns valid-JSON-envelope but non-JSON text content", async () => {
-    stubAnthropic(anthropicEnvelope("here is your answer, no JSON here"));
-
-    const res = await worker.fetch(postRespond({ query: "hi" }), makeEnv());
-    expect(res.status).toBe(502);
-    expect((await readBody(res)).error).toMatch(/non-json/i);
-  });
-
-  it("502 when the model returns JSON that fails schema validation", async () => {
-    // Missing required `answer.tldr` and `meta` — schema rejects.
-    stubAnthropic(anthropicEnvelope(JSON.stringify({ decision: { mode: "answer" } })));
-
-    const res = await worker.fetch(postRespond({ query: "hi" }), makeEnv());
-    expect(res.status).toBe(502);
-    expect((await readBody(res)).error).toMatch(/schema validation/i);
   });
 });

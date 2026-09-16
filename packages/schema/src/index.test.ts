@@ -11,7 +11,11 @@
 
 import { describe, expect, it } from "vitest";
 import type { AdaptiveResponse } from "./index.js";
-import { safeValidateAdaptiveResponse, validateAdaptiveResponse } from "./index.js";
+import {
+  safeValidateAdaptiveResponse,
+  toAdaptiveResponseJsonSchema,
+  validateAdaptiveResponse,
+} from "./index.js";
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
@@ -242,5 +246,45 @@ describe("validateAdaptiveResponse", () => {
       decision: { mode: "clarify", confidence: 0.3, ambiguity_level: "high", risk_level: "low" },
     });
     expect(() => validateAdaptiveResponse(bad)).toThrow();
+  });
+});
+
+// ─── JSON Schema export ───────────────────────────────────────────────────────────
+
+describe("toAdaptiveResponseJsonSchema", () => {
+  it("emits a strict object schema mirroring the Zod contract", () => {
+    const schema = toAdaptiveResponseJsonSchema();
+
+    expect(schema.type).toBe("object");
+    expect(schema.additionalProperties).toBe(false);
+    expect(schema.required).toEqual(expect.arrayContaining(["decision", "answer", "meta"]));
+
+    const properties = schema.properties as Record<string, { properties?: Record<string, unknown> }>;
+    expect(Object.keys(properties)).toEqual(
+      expect.arrayContaining(["decision", "clarifying_questions", "answer", "meta"]),
+    );
+    // The full contract keeps tokens_estimated (unlike the model-facing tool
+    // schema in @adaptive/core, which strips it).
+    expect(properties.meta?.properties?.tokens_estimated).toBeDefined();
+  });
+
+  it("encodes the superRefine invariant as an allOf if/then conditional", () => {
+    const schema = toAdaptiveResponseJsonSchema();
+    const allOf = schema.allOf as Array<{
+      if: { properties: { decision: { properties: { mode: { enum: string[] } } } } };
+      then: { required: string[]; properties: { clarifying_questions: { minItems: number } } };
+    }>;
+
+    expect(allOf).toHaveLength(1);
+    expect(allOf[0]?.if.properties.decision.properties.mode.enum).toEqual(["clarify", "hybrid"]);
+    expect(allOf[0]?.then.required).toEqual(["clarifying_questions"]);
+    expect(allOf[0]?.then.properties.clarifying_questions.minItems).toBe(1);
+  });
+
+  it("returns a fresh object each call (safe for callers to mutate)", () => {
+    const a = toAdaptiveResponseJsonSchema();
+    const b = toAdaptiveResponseJsonSchema();
+    expect(a).not.toBe(b);
+    expect(a).toEqual(b);
   });
 });
