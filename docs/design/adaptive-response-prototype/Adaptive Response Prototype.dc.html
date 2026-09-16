@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/cipher-gothic-design-system-019e1ccb-00cb-7782-8451-738a76f22b4e/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/cipher-gothic-design-system-019e1ccb-00cb-7782-8451-738a76f22b4e/styles.css">
+  <script src="_ds/cipher-gothic-design-system-019e1ccb-00cb-7782-8451-738a76f22b4e/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: var(--cg-bg); }
+    a { color: var(--cg-teal); text-decoration: none; border-bottom: 1px solid rgba(52,195,185,0.25); }
+    a:hover { color: var(--cg-coral); border-color: rgba(232,90,74,0.35); }
+    textarea:focus, input:focus { border-color: var(--cg-teal) !important; background: var(--cg-surface) !important; }
+    @keyframes cgFadeUp { from { opacity: 0; transform: translateY(14px); filter: blur(2px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
+  </style>
+</helmet>
+
+<div style="position: relative; font-family: var(--font-sans); min-height: 100vh; padding: 3rem 1.5rem 4rem; display: flex; flex-direction: column; align-items: center; gap: 2rem; background: var(--cg-bg); color: var(--cg-teal)">
+
+  <div style="position: absolute; top: 18px; left: 18px; width: 20px; height: 20px; border-top: 1px solid var(--cg-teal-dim); border-left: 1px solid var(--cg-teal-dim);"></div>
+  <div style="position: absolute; top: 18px; right: 18px; width: 20px; height: 20px; border-top: 1px solid var(--cg-teal-dim); border-right: 1px solid var(--cg-teal-dim);"></div>
+  <div style="position: absolute; bottom: 18px; left: 18px; width: 20px; height: 20px; border-bottom: 1px solid var(--cg-teal-dim); border-left: 1px solid var(--cg-teal-dim);"></div>
+  <div style="position: absolute; bottom: 18px; right: 18px; width: 20px; height: 20px; border-bottom: 1px solid var(--cg-teal-dim); border-right: 1px solid var(--cg-teal-dim);"></div>
+
+  <header style="text-align: center; max-width: 620px; animation: {{ entranceAnim }};">
+    <p style="margin: 0 0 0.6rem; font-family: var(--font-mono); font-size: 0.65rem; font-weight: 400; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cg-teal);">∅ CIPHER GOTHIC · SCHEMA-BOUND RESPONSE</p>
+    <h1 style="margin: 0; font-family: var(--font-serif); font-weight: 300; font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.05; letter-spacing: -0.01em; color: var(--cg-fg-bright);">Adaptive Response</h1>
+    <p style="margin: 0.6rem 0 0; font-family: var(--font-sans); font-size: 0.9rem; color: var(--cg-fg-mid); line-height: 1.6;">A typed decision, held before it reaches you — live in the browser.</p>
+  </header>
+
+  
+
+  <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="width: 100%; max-width: 720px; padding: 0.7rem 0.9rem; background: transparent; border: 1px solid var(--cg-coral-dim); border-radius: 3px; color: var(--cg-coral); font-family: var(--font-mono); font-size: 0.72rem;">
+      <span style="text-transform: uppercase; letter-spacing: 0.12em;">error</span> — {{ errorMsg }}
+    </div>
+  </sc-if>
+
+  <div style="width: 100%; max-width: 720px; display: flex; gap: 0.6rem; animation: {{ entranceAnim }};">
+    
+    <div style="box-sizing: border-box; display: flex; flex-direction: row; gap: 9.6px; justify-content: normal; align-items: normal; width: 716px; height: 89px"><textarea value="{{ query }}" onInput="{{ onQueryChange }}" onKeyDown="{{ onKeyDown }}" placeholder="Ask anything… (⌘ + Enter to submit)" rows="3" style="flex: 1; font-family: var(--font-mono); font-size: 0.8rem; background: var(--cg-bg-rise); border: 1px solid var(--cg-rule); color: var(--cg-fg); border-radius: 3px; padding: 0.7rem 0.85rem; resize: vertical; outline: none; transition: border-color 150ms ease, background 150ms ease; width: 650px; height: 65px"></textarea><button type="button" onClick="{{ onSubmit }}" disabled="{{ submitDisabled }}" style="align-self: flex-start; font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cg-teal); border: 1px solid {{ signalTone }}; border-radius: 3px; padding: 0.6rem 1.1rem; cursor: {{ submitCursor }}; opacity: {{ submitOpacity }}; font-style: italic; display: inline-block; text-align: justify; height: 86px; background-color: var(--cg-surface-2)">{{ submitLabel }}</button></div>
+  </div><div style="display: flex; flex-direction: column; width: 100%; max-width: 720px; animation: {{ entranceAnim }};">
+
+    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; padding: 0.9rem 0; border-bottom: 1px solid var(--cg-rule); background-color: var(--cg-surface-2); opacity: 0.8; justify-content: space-around; border-color: var(--cg-teal-faint)">
+      <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--cg-fg-sub);"><span style="letter-spacing: 0.14em; text-transform: uppercase; color: var(--cg-teal-dim)">mode</span> <span style="color: var(--cg-fg-bright);">{{ decisionMode }}</span></span>
+      <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--cg-fg-sub);"><span style="letter-spacing: 0.14em; text-transform: uppercase; color: var(--cg-fg-mid)">interpretability</span> <span style="color: var(--cg-fg-bright);">{{ confidencePct }}</span></span>
+      <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--cg-fg-sub);"><span style="letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-accent)">ambiguity</span> <span style="color: var(--cg-fg-bright);">{{ ambiguityLevel }}</span></span>
+      <span style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--cg-fg-sub);"><span style="letter-spacing: 0.14em; text-transform: uppercase; color: var(--cg-coral-dim)">risk</span> <span style="color: {{ riskColor }};">{{ riskLevel }}</span></span>
+    </div>
+
+    <sc-if value="{{ hasClarifying }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 1.1rem 0; border-bottom: 1px solid var(--cg-rule);">
+        <p style="margin: 0 0 0.6rem; font-family: var(--font-mono); font-size: 0.65rem; font-weight: 400; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cg-teal);">to clarify</p>
+        <ul style="margin: 0; padding-left: 1.1rem;">
+          <sc-for list="{{ clarifyingQuestions }}" as="q" hint-placeholder-count="2">
+            <li style="font-family: var(--font-sans); font-size: 0.9rem; line-height: 1.6; color: var(--cg-fg); padding-bottom: 0.35rem;">{{ q }}</li>
+          </sc-for>
+        </ul>
+      </div>
+    </sc-if>
+
+    
+
+    <sc-for list="{{ sections }}" as="section" hint-placeholder-count="0">
+      <div style="padding: 1.4rem 0; border-bottom: 1px solid var(--cg-rule);">
+      <p style="margin: 0 0 0.4rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cg-teal);">tl;dr</p><p style="margin: 0; font-family: var(--font-serif); font-style: italic; font-weight: 300; font-size: 1.3rem; line-height: 1.5; color: var(--cg-fg); width: 714px; height: 148px; text-align: left">{{ tldr }}</p>
+      
+    </div><div style="padding: 1.2rem 0; border-bottom: 1px solid var(--cg-rule); display: inline-block; opacity: 0.6">
+        <h3 style="margin: 0 0 0.5rem; font-family: var(--font-serif); font-weight: 400; font-size: 1.15rem; color: var(--cg-fg-bright); text-align: center; text-transform: capitalize">{{ section.title }}</h3>
+        <p style="margin: 0; font-family: var(--font-sans); font-size: 0.92rem; line-height: 1.75; color: var(--cg-fg-mid); white-space: pre-wrap; text-align: center">{{ section.content }}</p>
+      </div>
+    </sc-for>
+
+    <sc-if value="{{ hasAssumptions }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 1.1rem 0; border-bottom: 1px solid var(--cg-rule);">
+        <p style="margin: 0 0 0.6rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cg-fg-sub);">assumptions</p>
+        <ul style="margin: 0; padding-left: 1.1rem;">
+          <sc-for list="{{ assumptions }}" as="a" hint-placeholder-count="2">
+            <li style="font-family: var(--font-sans); font-size: 0.9rem; line-height: 1.6; color: var(--cg-fg-mid); padding-bottom: 0.35rem;">{{ a }}</li>
+          </sc-for>
+        </ul>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ hasRisks }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 1.1rem 0; border-bottom: 1px solid var(--cg-rule);">
+        <p style="margin: 0 0 0.6rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cg-fg-sub);">risks</p>
+        <ul style="margin: 0; padding-left: 1.1rem;">
+          <sc-for list="{{ risks }}" as="r" hint-placeholder-count="2">
+            <li style="font-family: var(--font-sans); font-size: 0.9rem; line-height: 1.6; color: var(--cg-fg-mid); padding-bottom: 0.35rem;">{{ r }}</li>
+          </sc-for>
+        </ul>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ hasAlternatives }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 1.1rem 0;">
+        <p style="margin: 0 0 0.7rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cg-fg-sub);">alternatives</p>
+        <sc-for list="{{ alternatives }}" as="alt" hint-placeholder-count="2">
+          <div style="display: grid; grid-template-columns: 28px 1fr 2fr; gap: 0.9rem; align-items: start; padding: 0.7rem 0; border-top: 1px solid var(--cg-rule-soft);">
+            <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--cg-fg-sub);">{{ alt.index }}</span>
+            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--cg-coral); border: 1px solid var(--cg-teal-dim); border-radius: 2px; padding: 0.15rem 0.45rem; align-self: start; text-align: center">{{ alt.condition }}</span>
+            <span style="font-family: var(--font-sans); font-size: 0.9rem; line-height: 1.6; color: var(--cg-fg-mid);">{{ alt.approach }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="width: 100%; max-width: 720px; padding: 1.2rem 1.4rem; border: 1px solid var(--cg-rule); border-radius: 3px; background: var(--cg-surface); font-family: var(--font-sans); font-size: 0.82rem; color: var(--cg-fg-mid); line-height: 1.7;">
+    <p style="margin: 0 0 0.6rem; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cg-teal);">handoff to claude code</p>
+    <p style="margin: 0 0 0.5rem;">This prototype's <code style="font-family: var(--font-mono); background: rgba(52,195,185,0.08); border: 1px solid var(--cg-rule); color: var(--cg-teal); padding: 0.1em 0.4em; border-radius: 2px;">buildSystemPrompt()</code> and <code style="font-family: var(--font-mono); background: rgba(52,195,185,0.08); border: 1px solid var(--cg-rule); color: var(--cg-teal); padding: 0.1em 0.4em; border-radius: 2px;">validateAdaptiveResponse()</code> mirror <code style="font-family: var(--font-mono); background: rgba(52,195,185,0.08); border: 1px solid var(--cg-rule); color: var(--cg-teal); padding: 0.1em 0.4em; border-radius: 2px;">packages/schema</code> exactly. To productionize:</p>
+    <ol style="margin: 0; padding-left: 1.2rem;">
+      <li>Move the JSON contract server-side into <code style="font-family: var(--font-mono); background: rgba(52,195,185,0.08); border: 1px solid var(--cg-rule); color: var(--cg-teal); padding: 0.1em 0.4em; border-radius: 2px;">apps/api/src</code>, call the Anthropic SDK there with this same system prompt, then run <code style="font-family: var(--font-mono); background: rgba(52,195,185,0.08); border: 1px solid var(--cg-rule); color: var(--cg-teal); padding: 0.1em 0.4em; border-radius: 2px;">AdaptiveResponseSchema.parse()</code> instead of the hand-rolled validator here.</li>
+      <li>Replace the direct <code style="font-family: var(--font-mono); background: rgba(52,195,185,0.08); border: 1px solid var(--cg-rule); color: var(--cg-teal); padding: 0.1em 0.4em; border-radius: 2px;">window.claude.complete</code> call with <code style="font-family: var(--font-mono); background: rgba(52,195,185,0.08); border: 1px solid var(--cg-rule); color: var(--cg-teal); padding: 0.1em 0.4em; border-radius: 2px;">new AdaptiveClient({ baseUrl }).respond({ query })</code>, so the browser never holds an API key.</li>
+      <li>On invalid JSON/schema mismatch, return the Worker's existing 502 — this prototype's error state already matches that UX.</li>
+      <li>The render order (banner → clarifying → tldr → sections → assumptions → risks → alternatives) is copy-identical to <code style="font-family: var(--font-mono); background: rgba(52,195,185,0.08); border: 1px solid var(--cg-rule); color: var(--cg-teal); padding: 0.1em 0.4em; border-radius: 2px;">ResponseRenderer</code> — swap for the real component once wired to live data.</li>
+    </ol>
+  </div>
+
+  <footer style="max-width: 720px; text-align: center; font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em; color: var(--cg-fg-sub); padding-top: 0.5rem;">
+    {{ modelLabel }} · in-browser · schema-validated
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:1500},&quot;signalTone&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#2BD3C6&quot;,&quot;options&quot;:[&quot;#34C3B9&quot;,&quot;#2BD3C6&quot;,&quot;#1C6964&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Brand&quot;},&quot;entranceMotion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Brand&quot;},&quot;claudeModel&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;claude-sonnet-4-5&quot;,&quot;options&quot;:[&quot;claude-haiku-4-5&quot;,&quot;claude-sonnet-4-5&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behavior&quot;},&quot;strictMode&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behavior&quot;}}">
+const FIXTURE = {
+  decision: { mode: 'answer', confidence: 0.92, ambiguity_level: 'low', risk_level: 'low' },
+  answer: {
+    tldr: 'This is a fixture response — submit a query above to call Claude live.',
+    sections: [{ title: 'How it works', content: 'Type a query and press \u2318 + Enter. The request goes straight to Claude in-browser with a structured-output prompt. The JSON response is validated against the AdaptiveResponse shape and rendered here.' }],
+    assumptions: ['Rendered client-side for this prototype — production should validate server-side.'],
+    risks: ['The model can still return malformed JSON on rare occasions — errors surface above.'],
+  },
+  meta: { intent_type: 'informational', complexity_score: 2 },
+};
+
+class Component extends DCLogic {
+  state = { query: '', response: FIXTURE, error: null, isPending: false, retryInfo: null };
+
+  buildSystemPrompt() {
+    const strict = this.props.strictMode ?? false;
+    const strictClause = strict
+      ? ' Be conservative: only use mode "answer" when confidence would be at least 0.85 and risk_level is "low" — otherwise use "clarify" or "hybrid".'
+      : '';
+    return `You are an API that must respond with ONLY a single JSON object (no markdown fences, no prose) matching exactly this TypeScript shape:
+
+interface AdaptiveResponse {
+  decision: {
+    mode: "answer" | "clarify" | "hybrid";
+    confidence: number; // 0-1
+    ambiguity_level: "low" | "medium" | "high";
+    risk_level: "low" | "medium" | "high";
+  };
+  clarifying_questions?: string[]; // required non-empty when mode is "clarify" or "hybrid"
+  answer: {
+    tldr: string;
+    sections?: Array<{ title: string; content: string }>;
+    assumptions?: string[];
+    alternatives?: Array<{ condition: string; approach: string }>;
+    risks?: string[];
+  };
+  meta: {
+    intent_type: "informational" | "analytical" | "generative" | "diagnostic" | "comparative";
+    complexity_score: number; // 0-10
+  };
+}
+
+Choose "clarify" or "hybrid" mode (with clarifying_questions) when the query is genuinely ambiguous; otherwise "answer".${strictClause} Output raw JSON only.`;
+  }
+
+  validateAdaptiveResponse(v) {
+    const err = (m) => { throw new Error(m); };
+    if (!v || typeof v !== 'object') err('response is not an object');
+    const d = v.decision;
+    if (!d || !['answer', 'clarify', 'hybrid'].includes(d.mode)) err('decision.mode invalid');
+    if (typeof d.confidence !== 'number' || d.confidence < 0 || d.confidence > 1) err('decision.confidence out of range');
+    if (!['low', 'medium', 'high'].includes(d.ambiguity_level)) err('decision.ambiguity_level invalid');
+    if (!['low', 'medium', 'high'].includes(d.risk_level)) err('decision.risk_level invalid');
+    const needsClarify = d.mode === 'clarify' || d.mode === 'hybrid';
+    if (needsClarify && (!Array.isArray(v.clarifying_questions) || v.clarifying_questions.length === 0)) {
+      err(`clarifying_questions must be non-empty when mode is "${d.mode}"`);
+    }
+    if (!v.answer || typeof v.answer.tldr !== 'string' || !v.answer.tldr) err('answer.tldr required');
+    if (!v.meta || !['informational', 'analytical', 'generative', 'diagnostic', 'comparative'].includes(v.meta.intent_type)) err('meta.intent_type invalid');
+    if (typeof v.meta.complexity_score !== 'number' || v.meta.complexity_score < 0 || v.meta.complexity_score > 10) err('meta.complexity_score out of range');
+    return v;
+  }
+
+  extractJson(text) {
+    const trimmed = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```$/, '');
+    return JSON.parse(trimmed);
+  }
+
+  onQueryChange = (e) => this.setState({ query: e.target.value });
+  onKeyDown = (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') this.onSubmit(); };
+
+  isRateLimitError(e) {
+    const status = e && (e.status || e.statusCode || e.code);
+    const msg = String((e && e.message) || e || '');
+    return status === 429 || /429|rate.?limit/i.test(msg);
+  }
+
+  getRetryAfter(e) {
+    const ra = e && e.retryAfter;
+    const n = Number(ra);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+  // Idempotent read (a query, no tool/mutation side effects) — safe to retry automatically.
+  async completeWithBackoff(payload, maxAttempts = 3) {
+    let attempt = 0;
+    while (true) {
+      try {
+        return await window.claude.complete(payload);
+      } catch (e) {
+        if (!this.isRateLimitError(e) || attempt >= maxAttempts - 1) throw e;
+        const retryAfterSec = this.getRetryAfter(e);
+        const base = retryAfterSec ? retryAfterSec * 1000 : 500 * Math.pow(2, attempt);
+        const jitter = Math.random() * 300;
+        this.setState({ error: null, retryInfo: `rate-limited — retrying in ${Math.round((base + jitter) / 1000)}s (attempt ${attempt + 2}/${maxAttempts})` });
+        await this.sleep(base + jitter);
+        attempt++;
+      }
+    }
+  }
+
+  onSubmit = async () => {
+    const q = this.state.query.trim();
+    if (!q || this.state.isPending) return;
+    this.setState({ isPending: true, error: null, retryInfo: null });
+    try {
+      const raw = await this.completeWithBackoff({
+        messages: [{ role: 'user', content: q }],
+        system: this.buildSystemPrompt(),
+        model: this.props.claudeModel ?? 'claude-haiku-4-5',
+      });
+      const parsed = this.extractJson(raw);
+      const validated = this.validateAdaptiveResponse(parsed);
+      this.setState({ response: validated, isPending: false, retryInfo: null });
+    } catch (e) {
+      if (this.isRateLimitError(e)) {
+        const retryAfterSec = this.getRetryAfter(e);
+        this.setState({
+          isPending: false,
+          retryInfo: null,
+          error: {
+            code: 'RATE_LIMITED',
+            message: 'Claude is temporarily rate-limited. Wait a moment, then retry.' + (retryAfterSec ? ` (retry-after: ${retryAfterSec}s)` : ''),
+          },
+        });
+        return;
+      }
+      this.setState({ isPending: false, retryInfo: null, error: { code: 'REQUEST_FAILED', message: (e && e.message) || String(e) } });
+    }
+  };
+
+  renderVals() {
+    const { query, response, error, isPending, retryInfo } = this.state;
+    const d = response.decision;
+    const a = response.answer;
+    const signalTone = this.props.signalTone ?? '#34C3B9';
+    const alternatives = (a.alternatives || []).map((alt, i) => ({ ...alt, index: String(i + 1).padStart(2, '0') }));
+    return {
+      query, onQueryChange: this.onQueryChange, onKeyDown: this.onKeyDown, onSubmit: this.onSubmit,
+      submitDisabled: isPending || !query.trim(),
+      submitOpacity: (isPending || !query.trim()) ? 0.45 : 1,
+      submitCursor: isPending ? 'wait' : 'pointer',
+      submitLabel: isPending ? (retryInfo ? 'retrying…' : 'thinking…') : 'send',
+      hasError: !!error, errorMsg: error ? `${error.code} — ${error.message}` : '',
+      signalTone,
+      entranceAnim: (this.props.entranceMotion ?? true) ? 'cgFadeUp 700ms cubic-bezier(0.22,1,0.36,1) both' : 'none',
+      modelLabel: this.props.claudeModel ?? 'claude-haiku-4-5',
+      decisionMode: d.mode,
+      confidencePct: Math.round(d.confidence * 100) + '%',
+      ambiguityLevel: d.ambiguity_level,
+      riskLevel: d.risk_level,
+      riskColor: d.risk_level === 'high' ? 'var(--cg-coral)' : 'var(--cg-fg-bright)',
+      hasClarifying: !!(response.clarifying_questions && response.clarifying_questions.length),
+      clarifyingQuestions: response.clarifying_questions || [],
+      tldr: a.tldr,
+      sections: a.sections || [],
+      hasAssumptions: !!(a.assumptions && a.assumptions.length), assumptions: a.assumptions || [],
+      hasRisks: !!(a.risks && a.risks.length), risks: a.risks || [],
+      hasAlternatives: !!(alternatives.length), alternatives,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "@adaptive/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@adaptive/schema": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.1.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  }
+}
