@@ -13,9 +13,9 @@
     "@adaptive/schema": "workspace:*"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240512.0",
-    "typescript": "^5.4.5",
-    "vitest": "^4.1.11",
-    "wrangler": "^4.0.0"
+    "@cloudflare/workers-types": "^5.20260911.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0",
+    "wrangler": "^4.131.1"
   }
 }
