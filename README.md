@@ -18,7 +18,8 @@ The model is *forced* to call a tool whose `input_schema` is generated from the 
 
 ```
 User query
-  → POST /v1/respond  (Cloudflare Worker — thin HTTP transport)
+  → POST /v1/respond (HTTP JSON)  ─┬─  (Cloudflare Worker — thin transports)
+  → POST /mcp (MCP tool call)    ─┘
   → @adaptive/core generateAdaptiveResponse()
       → Anthropic Messages API (claude-sonnet-4-6), forced tool_choice:
         emit_adaptive_response — input_schema generated from the Zod schema
@@ -41,7 +42,7 @@ The model decides whether to answer directly, ask clarifying questions, or do bo
 | `packages/core` | Runtime-agnostic engine: forced tool-use call to Anthropic, Zod validation, one repair pass, retry/backoff. Embeddable in any modern JS runtime. |
 | `packages/sdk` | `AdaptiveClient` — typed fetch wrapper for `/v1/respond`. Re-exports all types from `@adaptive/schema`. |
 | `packages/ui` | React components: `ResponseRenderer`, `DecisionBanner`, `TldrBlock`, `SectionBlock`, `ListBlock`, `AlternativesBlock`. |
-| `apps/api` | Cloudflare Worker. Thin HTTP transport over `@adaptive/core`. |
+| `apps/api` | Cloudflare Worker. Thin HTTP + MCP transports over `@adaptive/core`. |
 | `apps/demo` | Vite + React demo app. Proxies `/v1` to the local Worker in dev. |
 
 ---
@@ -66,8 +67,30 @@ if (result.ok) {
 }
 ```
 
-An MCP transport (remote on the Worker + `npx @adaptive/mcp`) is planned on top of
-the same function — see [ADR 0003](docs/adr/0003-expose-engine-as-mcp.md).
+---
+
+## MCP endpoint
+
+The Worker also serves the engine over MCP (Streamable HTTP) at `/mcp` — see
+[ADR 0003](docs/adr/0003-expose-engine-as-mcp.md). Any MCP host (Claude
+Desktop/Code, Zed, Cursor) can connect with zero integration code:
+
+```jsonc
+// e.g. in an MCP client config
+{
+  "adaptive-response": {
+    "url": "https://adaptive-api.your-account.workers.dev/mcp"
+  }
+}
+```
+
+One tool is exposed — `adaptive_respond` `{ query, context? }`. It returns the
+full `AdaptiveResponse` as `structuredContent` (typed by an `outputSchema`
+generated from the Zod contract) plus a text fallback. When the decision mode
+is `clarify` or `hybrid`, answer the returned `clarifying_questions` and call
+the tool again with those answers in `context`.
+
+A local stdio package (`npx @adaptive/mcp`) is planned — see ADR 0003.
 
 ---
 

@@ -9,6 +9,11 @@
  * POST /v1/respond  { query: string, context?: string }
  *   → AdaptiveResponse JSON
  *
+ * POST /mcp
+ *   → Stateless MCP endpoint (Streamable HTTP) exposing the `adaptive_respond`
+ *     tool — same engine, same contract (ADR 0003). Handled by
+ *     `createMcpHandler` from the Agents SDK; see ./mcp.ts.
+ *
  * GET  /health
  *   → { status: "ok" }
  *
@@ -24,6 +29,8 @@
  */
 
 import { generateAdaptiveResponse } from "@adaptive/core";
+import { createMcpHandler } from "agents/mcp/server";
+import { createAdaptiveMcpServer } from "./mcp";
 
 // ─── Env binding ─────────────────────────────────────────────────────────────
 
@@ -96,9 +103,47 @@ function jsonResponse(
 // ─── Worker entry point ──────────────────────────────────────────────────────
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
     const requestId = crypto.randomUUID();
     const cors = buildCorsHeaders(request, env.ALLOWED_ORIGINS ?? "");
+    const url = new URL(request.url);
+
+    // MCP transport — the handler owns its own envelope (CORS, preflight,
+    // Origin validation), so it is dispatched before the REST plumbing below.
+    // Rate limiting is applied first, keyed the same way as /v1/respond, since
+    // tool calls reach the same Anthropic-backed engine.
+    if (url.pathname === "/mcp") {
+      const mcpClientIp = request.headers.get("CF-Connecting-IP") ?? crypto.randomUUID();
+      if (env.RATE_LIMITER && request.method === "POST") {
+        const { success } = await env.RATE_LIMITER.limit({ key: mcpClientIp });
+        if (!success) {
+          return jsonResponse(
+            { error: "Rate limit exceeded. Please slow down.", requestId },
+            429,
+            cors,
+            requestId,
+          );
+        }
+      }
+
+      // One handler per request is the documented stateless lifecycle (we use
+      // no MCP notifications or listen streams, which are the only features
+      // that need a module-scope handler).
+      const handler = createMcpHandler(() => createAdaptiveMcpServer(env), {
+        route: "/mcp",
+        // Browser CORS headers are omitted entirely — MCP clients are
+        // non-browser; this matches the API's deny-by-default posture. The
+        // handler still validates any Origin that is present.
+        corsOptions: false,
+        onerror: (error) => console.error("[mcp] handler_error", requestId, String(error)),
+      });
+      // Tests invoke `worker.fetch(request, env)` without a runtime context;
+      // the handler only uses `waitUntil`, so a no-op shim is safe there. The
+      // real Workers runtime always supplies `ctx`.
+      const executionCtx =
+        ctx ?? ({ waitUntil() {}, passThroughOnException() {} } as unknown as ExecutionContext);
+      return handler(request, env, executionCtx);
+    }
 
     // Pre-flight
     if (request.method === "OPTIONS") {
@@ -107,8 +152,6 @@ export default {
         headers: { ...cors, ...SECURITY_HEADERS, "X-Request-ID": requestId },
       });
     }
-
-    const url = new URL(request.url);
 
     // Health check
     if (request.method === "GET" && url.pathname === "/health") {

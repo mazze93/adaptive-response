@@ -21,7 +21,8 @@ packages/
   ui/       @adaptive/ui       — React components that render AdaptiveResponse.
 
 apps/
-  api/      @adaptive/api      — Cloudflare Worker. Thin HTTP transport over @adaptive/core.
+  api/      @adaptive/api      — Cloudflare Worker. Thin HTTP + MCP transports over @adaptive/core.
+                                 /v1/respond (JSON) and /mcp (stateless MCP, ADR 0003).
   demo/     @adaptive/demo     — Vite + React demo. Proxies /v1 → local Worker.
 
 docs/
@@ -96,7 +97,9 @@ interface AdaptiveResponse {
 | Retry/backoff | `packages/core/src/index.ts` — `fetchWithRetry` |
 | Engine tests | `packages/core/src/index.test.ts` |
 | API client | `packages/sdk/src/index.ts` |
-| Worker entry point (HTTP transport only) | `apps/api/src/index.ts` |
+| Worker entry point (routing, transports) | `apps/api/src/index.ts` |
+| MCP server + `adaptive_respond` tool | `apps/api/src/mcp.ts` |
+| MCP transport tests | `apps/api/src/mcp.test.ts` |
 | CORS logic | `apps/api/src/index.ts` — `buildCorsHeaders` |
 | Architecture decisions | `docs/adr/` |
 | Top-level UI renderer | `packages/ui/src/components/ResponseRenderer.tsx` |
@@ -126,8 +129,9 @@ interface AdaptiveResponse {
 - Add a route guard branch in the `fetch` handler in `apps/api/src/index.ts`.
 - Return errors via `jsonResponse()` with appropriate status codes.
 
-**Adding a new transport (MCP, CLI, …):**
-- Call `generateAdaptiveResponse` from `@adaptive/core`; map the `EngineResult` error codes to the transport's error envelope. Do not re-implement the Anthropic call, validation, or repair logic. See ADR 0003 for the MCP plan.
+**Adding a new transport (CLI, stdio MCP, …):**
+- Call `generateAdaptiveResponse` from `@adaptive/core`; map the `EngineResult` error codes to the transport's error envelope. Do not re-implement the Anthropic call, validation, or repair logic. `apps/api/src/mcp.ts` (remote MCP via `createMcpHandler`, ADR 0003) is the reference adapter; the stdio `@adaptive/mcp` package is still pending.
+- MCP note: use the stateless `createMcpHandler` lane (`agents/mcp/server` + MCP SDK v2). `McpAgent` is deprecated upstream — do not add a Durable Object for MCP unless a feature genuinely needs sessions.
 
 **Making an architectural decision:**
 - Record it in `docs/adr/` (next sequential number, Nygard format). Supersede — never rewrite — accepted ADRs.
