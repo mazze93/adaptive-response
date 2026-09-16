@@ -6,6 +6,14 @@
 
 import { z } from "zod";
 
+/**
+ * Version of the AdaptiveResponse contract itself (semver). Injected into
+ * `meta.schema_version` by the engine so integrators can detect contract
+ * changes without pinning the package (ADR 0004). Bump the minor for additive
+ * changes, the major for breaking ones — and record the change in an ADR.
+ */
+export const SCHEMA_VERSION = "0.1.0";
+
 // ─── Leaf schemas ────────────────────────────────────────────────────────────
 
 export const DecisionModeSchema = z.enum(["answer", "clarify", "hybrid"]);
@@ -59,6 +67,7 @@ export const MetaSchema = z
     intent_type: IntentTypeSchema,
     complexity_score: z.number().min(0).max(10),
     tokens_estimated: z.number().nonnegative().optional(),
+    schema_version: z.string().min(1).optional(),
   })
   .strict();
 

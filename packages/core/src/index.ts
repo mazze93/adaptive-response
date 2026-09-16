@@ -13,7 +13,11 @@
  */
 
 import type { AdaptiveResponse } from "@adaptive/schema";
-import { safeValidateAdaptiveResponse, toAdaptiveResponseJsonSchema } from "@adaptive/schema";
+import {
+  SCHEMA_VERSION,
+  safeValidateAdaptiveResponse,
+  toAdaptiveResponseJsonSchema,
+} from "@adaptive/schema";
 
 // ─── Retry with exponential backoff + full jitter ─────────────────────────────
 
@@ -99,9 +103,9 @@ export interface AnthropicTool {
 
 /**
  * The forced tool the model must call. Its input_schema is generated from the
- * canonical Zod schema, with `meta.tokens_estimated` removed — real token usage
- * is injected by the engine from the API's usage data; the model must not
- * guess it.
+ * canonical Zod schema, minus the engine-injected fields the model must not
+ * set: `meta.tokens_estimated` (real usage comes from the API's usage data)
+ * and `meta.schema_version` (stamped from @adaptive/schema's SCHEMA_VERSION).
  */
 export function buildAdaptiveResponseTool(): AnthropicTool {
   const schema = toAdaptiveResponseJsonSchema() as JsonSchemaNode;
@@ -109,6 +113,7 @@ export function buildAdaptiveResponseTool(): AnthropicTool {
   const meta = schema.properties?.meta;
   if (meta?.properties) {
     delete meta.properties.tokens_estimated;
+    delete meta.properties.schema_version;
   }
   return {
     name: ADAPTIVE_RESPONSE_TOOL_NAME,
@@ -301,6 +306,10 @@ export async function generateAdaptiveResponse(
       if (totalTokens !== undefined) {
         validation.data.meta.tokens_estimated = totalTokens;
       }
+      // Stamp the contract version so integrators can detect schema changes
+      // without pinning the package (ADR 0004). Engine-owned — overrides
+      // anything the model may have emitted.
+      validation.data.meta.schema_version = SCHEMA_VERSION;
       return { ok: true, response: validation.data };
     }
 

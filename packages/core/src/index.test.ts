@@ -10,6 +10,7 @@
  *   - generateAdaptiveResponse: happy path, repair pass, error mapping
  */
 
+import { SCHEMA_VERSION } from "@adaptive/schema";
 import { describe, expect, it, vi } from "vitest";
 import {
   ADAPTIVE_RESPONSE_TOOL_NAME,
@@ -231,7 +232,7 @@ describe("buildAdaptiveResponseTool", () => {
     );
   });
 
-  it("omits the meta-schema URI and the engine-injected tokens_estimated", () => {
+  it("omits the meta-schema URI and the engine-injected meta fields", () => {
     const tool = buildAdaptiveResponseTool();
     const properties = tool.input_schema.properties as Record<
       string,
@@ -241,6 +242,7 @@ describe("buildAdaptiveResponseTool", () => {
     expect(tool.input_schema.$schema).toBeUndefined();
     expect(properties.meta?.properties).toBeDefined();
     expect(properties.meta?.properties?.tokens_estimated).toBeUndefined();
+    expect(properties.meta?.properties?.schema_version).toBeUndefined();
   });
 
   it("encodes the clarifying_questions invariant as an if/then conditional", () => {
@@ -272,6 +274,19 @@ describe("generateAdaptiveResponse", () => {
       expect(result.response.meta.tokens_estimated).toBe(30);
     }
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("stamps meta.schema_version, overriding anything the model emitted", async () => {
+    const output = validModelOutput();
+    (output.meta as Record<string, unknown>).schema_version = "999.0.0"; // model lies
+    const fetchMock = scriptedFetch([toolUseEnvelope(output)]);
+
+    const result = await generateAdaptiveResponse({ query: "hi" }, makeConfig(fetchMock));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.response.meta.schema_version).toBe(SCHEMA_VERSION);
+    }
   });
 
   it("forces the tool and prepends context to the user message", async () => {

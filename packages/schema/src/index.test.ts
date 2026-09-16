@@ -99,6 +99,22 @@ describe("happy paths", () => {
     );
     expect(result.success).toBe(true);
   });
+
+  it("accepts meta.schema_version and rejects an empty one", () => {
+    const withVersion = safeValidateAdaptiveResponse(
+      makeResponse({
+        meta: { intent_type: "informational", complexity_score: 1, schema_version: "0.1.0" },
+      }),
+    );
+    expect(withVersion.success).toBe(true);
+
+    const emptyVersion = safeValidateAdaptiveResponse(
+      makeResponse({
+        meta: { intent_type: "informational", complexity_score: 1, schema_version: "" },
+      }),
+    );
+    expect(emptyVersion.success).toBe(false);
+  });
 });
 
 // ─── Cross-field validation ───────────────────────────────────────────────────

@@ -24,6 +24,7 @@ interface Env {
   ANTHROPIC_MODEL: string;
   ALLOWED_ORIGINS: string;
   RATE_LIMITER: RateLimiter;
+  API_KEYS?: string;
 }
 
 function makeEnv(overrides: Partial<Env> = {}): Env {
@@ -70,12 +71,13 @@ afterEach(() => {
 
 // ─── JSON-RPC plumbing ───────────────────────────────────────────────────────
 
-function rpcRequest(body: unknown): Request {
+function rpcRequest(body: unknown, bearer?: string): Request {
   return new Request("https://api.test/mcp", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json, text/event-stream",
+      ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
     },
     body: JSON.stringify(body),
   });
@@ -260,6 +262,27 @@ describe("/mcp hardening", () => {
     );
 
     expect(res.status).toBe(200);
+  });
+
+  it("401s /mcp when API_KEYS is set and no Bearer key is presented (ADR 0004)", async () => {
+    const res = await worker.fetch(
+      rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} }),
+      makeEnv({ API_KEYS: "k1" }),
+    );
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get("WWW-Authenticate")).toContain("Bearer");
+  });
+
+  it("serves /mcp normally with a valid Bearer key", async () => {
+    const res = await worker.fetch(
+      rpcRequest({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }, "k1"),
+      makeEnv({ API_KEYS: "k1" }),
+    );
+
+    expect(res.status).toBe(200);
+    const rpc = await readRpc(res);
+    expect(rpc.result?.tools?.some((t) => t.name === RESPOND_TOOL_NAME)).toBe(true);
   });
 });
 

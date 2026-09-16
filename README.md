@@ -127,6 +127,19 @@ npx wrangler secret put ANTHROPIC_API_KEY
 # paste your key when prompted
 ```
 
+### Protecting the endpoints (ADR 0004)
+
+Both `/v1/respond` and `/mcp` accept an optional Bearer-key gate. Set the
+`API_KEYS` secret (comma-separated keys) and every request must carry
+`Authorization: Bearer <key>`; leave it unset for open dev/demo access:
+
+```bash
+npx wrangler secret put API_KEYS
+# e.g. paste: key-for-app-a,key-for-app-b
+```
+
+The SDK's `apiKey` config sends this header automatically. `/health` stays open.
+
 ---
 
 ## Environment variables
@@ -190,7 +203,8 @@ interface AdaptiveResponse {
   meta: {
     intent_type: "informational" | "analytical" | "generative" | "diagnostic" | "comparative";
     complexity_score: number;    // 0–10
-    tokens_estimated?: number;
+    tokens_estimated?: number;   // injected by the engine from Anthropic usage data
+    schema_version?: string;     // injected by the engine (SCHEMA_VERSION, semver)
   };
 }
 ```
@@ -206,5 +220,6 @@ See [SECURITY.md](SECURITY.md) for the responsible disclosure policy.
 Key hardening decisions in this project:
 - `ALLOWED_ORIGINS` defaults to `""` (deny-by-default). You must explicitly allowlist origins.
 - `ANTHROPIC_API_KEY` is stored as a Wrangler secret — it never appears in `wrangler.toml` or source.
+- Optional `API_KEYS` secret gates `/v1/respond` and `/mcp` with constant-time Bearer-key checks (ADR 0004).
 - Worker responses include `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Referrer-Policy: no-referrer`.
 - Upstream (Anthropic) errors are logged internally via `console.error` and never returned to callers.
