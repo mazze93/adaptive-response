@@ -9,9 +9,14 @@ compatibility_flags = ["nodejs_compat"]
 #                      Stateless by design: no Durable Object binding or
 #                      migrations are required for it.
 
-# ── Variables ────────────────────────────────────────────────────────────────
+# ── Variables ──────────────────────────────────────────────────────────────────
 # ANTHROPIC_API_KEY must be stored as a secret, never in plaintext:
 #   wrangler secret put ANTHROPIC_API_KEY
+#
+# API_KEYS (optional secret, ADR 0004) — comma-separated Bearer keys accepted
+# on /v1/respond and /mcp. Unset or empty leaves both endpoints open (dev/demo
+# parity); set it before exposing a deployment to the public internet:
+#   wrangler secret put API_KEYS
 
 [vars]
 ANTHROPIC_MODEL      = "claude-sonnet-4-6"

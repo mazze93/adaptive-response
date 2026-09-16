@@ -20,6 +20,10 @@
  * Secrets required (set via `wrangler secret put`):
  *   ANTHROPIC_API_KEY
  *
+ * Optional secrets:
+ *   API_KEYS          — comma-separated Bearer keys for /v1/respond and /mcp
+ *                       (ADR 0004). Unset/empty = open access (dev/demo).
+ *
  * Env vars (set in wrangler.toml [vars]):
  *   ANTHROPIC_MODEL   — defaults to "claude-sonnet-4-6"
  *   ALLOWED_ORIGINS   — comma-separated CORS origins; empty = deny all cross-origin
@@ -43,6 +47,54 @@ interface Env {
   ANTHROPIC_MODEL: string;
   ALLOWED_ORIGINS: string;
   RATE_LIMITER: RateLimiter;
+  /** Optional Wrangler secret — comma-separated API keys. Unset = open access. */
+  API_KEYS?: string;
+}
+
+// ─── Bearer-key auth (ADR 0004) ─────────────────────────────────────────────
+
+/** Constant-time byte comparison — no early exit on mismatch. */
+function timingSafeEqualBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= (a[i] ?? 0) ^ (b[i] ?? 0);
+  }
+  return diff === 0;
+}
+
+/**
+ * Checks the request's Bearer token against the comma-separated API_KEYS
+ * secret. An unset/empty secret disables auth (dev/demo parity — ADR 0004).
+ *
+ * Keys are compared as SHA-256 digests: it equalises lengths (a requirement
+ * of the constant-time loop) and keeps the comparison timing independent of
+ * where a mismatch occurs in the raw key material.
+ */
+async function isAuthorized(request: Request, apiKeys: string | undefined): Promise<boolean> {
+  const keys = (apiKeys ?? "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k.length > 0);
+  if (keys.length === 0) return true; // auth disabled
+
+  const header = request.headers.get("Authorization") ?? "";
+  const match = /^Bearer\s+(.+)$/i.exec(header);
+  if (!match?.[1]) return false;
+
+  const encoder = new TextEncoder();
+  const presented = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", encoder.encode(match[1].trim())),
+  );
+
+  // Check every key (no early exit) so timing does not reveal which key
+  // position, if any, matched.
+  let authorized = false;
+  for (const key of keys) {
+    const expected = new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(key)));
+    authorized = timingSafeEqualBytes(presented, expected) || authorized;
+  }
+  return authorized;
 }
 
 // ─── Hardened response headers ────────────────────────────────────────────────
@@ -100,7 +152,21 @@ function jsonResponse(
   });
 }
 
-// ─── Worker entry point ──────────────────────────────────────────────────────
+/** 401 with the RFC 6750 challenge header, inside the standard envelope. */
+function unauthorizedResponse(cors: Record<string, string>, requestId: string): Response {
+  return new Response(JSON.stringify({ error: "Unauthorized", requestId }), {
+    status: 401,
+    headers: {
+      ...cors,
+      ...SECURITY_HEADERS,
+      "Content-Type": "application/json",
+      "WWW-Authenticate": 'Bearer realm="adaptive-api"',
+      "X-Request-ID": requestId,
+    },
+  });
+}
+
+// ─── Worker entry point ────────────────────────────────────────────────────────
 
 export default {
   async fetch(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
@@ -110,9 +176,14 @@ export default {
 
     // MCP transport — the handler owns its own envelope (CORS, preflight,
     // Origin validation), so it is dispatched before the REST plumbing below.
-    // Rate limiting is applied first, keyed the same way as /v1/respond, since
-    // tool calls reach the same Anthropic-backed engine.
+    // Auth (ADR 0004) and rate limiting are applied first, keyed the same way
+    // as /v1/respond, since tool calls reach the same Anthropic-backed engine.
     if (url.pathname === "/mcp") {
+      // OPTIONS is exempt: browsers never attach Authorization to preflights.
+      if (request.method !== "OPTIONS" && !(await isAuthorized(request, env.API_KEYS))) {
+        return unauthorizedResponse(cors, requestId);
+      }
+
       const mcpClientIp = request.headers.get("CF-Connecting-IP") ?? crypto.randomUUID();
       if (env.RATE_LIMITER && request.method === "POST") {
         const { success } = await env.RATE_LIMITER.limit({ key: mcpClientIp });
@@ -161,6 +232,12 @@ export default {
     // Route guard
     if (request.method !== "POST" || url.pathname !== "/v1/respond") {
       return jsonResponse({ error: "Not found" }, 404, cors, requestId);
+    }
+
+    // Auth — checked before rate limiting and the Anthropic call (ADR 0004).
+    // An unset API_KEYS secret leaves the endpoint open (dev/demo parity).
+    if (!(await isAuthorized(request, env.API_KEYS))) {
+      return unauthorizedResponse(cors, requestId);
     }
 
     // Rate limiting — keyed on client IP, degrades gracefully if binding absent.

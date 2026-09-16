@@ -26,6 +26,7 @@ interface Env {
   ANTHROPIC_MODEL: string;
   ALLOWED_ORIGINS: string;
   RATE_LIMITER: RateLimiter;
+  API_KEYS?: string;
 }
 
 function makeEnv(overrides: Partial<Env> = {}): Env {
@@ -38,12 +39,13 @@ function makeEnv(overrides: Partial<Env> = {}): Env {
   };
 }
 
-function postRespond(body: unknown, origin?: string): Request {
+function postRespond(body: unknown, origin?: string, bearer?: string): Request {
   return new Request("https://api.test/v1/respond", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(origin ? { Origin: origin } : {}),
+      ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
     },
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
@@ -53,7 +55,9 @@ function postRespond(body: unknown, origin?: string): Request {
 function stubAnthropic(response: Response | (() => Response | Promise<Response>)): void {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => (typeof response === "function" ? response() : response)),
+    // Static responses are cloned so the stub can serve more than one call
+    // (a Response body is single-use).
+    vi.fn(async () => (typeof response === "function" ? response() : response.clone())),
   );
 }
 
@@ -265,6 +269,55 @@ describe("rate limiting", () => {
 
     const res = await worker.fetch(postRespond({ query: "hi" }), env);
 
+    expect(res.status).toBe(200);
+  });
+});
+
+// ─── Bearer-key auth (ADR 0004) ──────────────────────────────────────────────────
+
+describe("bearer-key auth", () => {
+  it("is open when API_KEYS is unset (dev/demo parity)", async () => {
+    stubAnthropic(anthropicEnvelope(validModelResponse()));
+    const res = await worker.fetch(postRespond({ query: "hi" }), makeEnv());
+    expect(res.status).toBe(200);
+  });
+
+  it("401s a request with no Authorization header when keys are set", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const res = await worker.fetch(postRespond({ query: "hi" }), makeEnv({ API_KEYS: "k1, k2" }));
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get("WWW-Authenticate")).toContain("Bearer");
+    expect(res.headers.get("X-Request-ID")).toBeTruthy();
+    expect(fetchSpy).not.toHaveBeenCalled(); // rejected before the Anthropic call
+  });
+
+  it("401s a wrong key", async () => {
+    const res = await worker.fetch(
+      postRespond({ query: "hi" }, undefined, "nope"),
+      makeEnv({ API_KEYS: "k1,k2" }),
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("accepts any key from the comma-separated list", async () => {
+    stubAnthropic(anthropicEnvelope(validModelResponse()));
+    const env = makeEnv({ API_KEYS: "k1, k2" });
+
+    const first = await worker.fetch(postRespond({ query: "hi" }, undefined, "k1"), env);
+    const second = await worker.fetch(postRespond({ query: "hi" }, undefined, "k2"), env);
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+  });
+
+  it("leaves /health open even when keys are set", async () => {
+    const res = await worker.fetch(
+      new Request("https://api.test/health"),
+      makeEnv({ API_KEYS: "k1" }),
+    );
     expect(res.status).toBe(200);
   });
 });

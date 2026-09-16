@@ -52,7 +52,9 @@ sdk, ui ←  demo
 
 6. **`@adaptive/core` never reads env or secrets.** Transports own configuration; the engine receives the API key via its config argument. It also never throws for expected failures — it returns a discriminated `EngineResult` that each transport maps to its own error envelope. `detail` fields are for internal logging only and must never reach callers.
 
-5. **`ANTHROPIC_API_KEY` is a Wrangler secret, never a `[vars]` entry.** Do not write it to `wrangler.toml`.
+5. **`ANTHROPIC_API_KEY` is a Wrangler secret, never a `[vars]` entry.** Do not write it to `wrangler.toml`. The same goes for the optional `API_KEYS` auth secret (ADR 0004).
+
+7. **Engine-injected meta fields (`tokens_estimated`, `schema_version`) are stripped from the model-facing tool schema** in `buildAdaptiveResponseTool` and stamped by the engine after validation. If you add another engine-owned field, follow the same pattern.
 
 ---
 
@@ -77,7 +79,8 @@ interface AdaptiveResponse {
   meta: {
     intent_type: "informational" | "analytical" | "generative" | "diagnostic" | "comparative";
     complexity_score: number;        // 0–10
-    tokens_estimated?: number;       // injected by the Worker from Anthropic usage data
+    tokens_estimated?: number;       // injected by the engine from Anthropic usage data
+    schema_version?: string;         // injected by the engine (SCHEMA_VERSION from @adaptive/schema)
   };
 }
 ```
