@@ -1,7 +1,7 @@
 /**
- * @adaptive/sdk
+ * @adaptive-response/sdk
  * AdaptiveClient — typed fetch wrapper for the /v1/respond API.
- * Re-exports all types from @adaptive/schema for consumer convenience.
+ * Re-exports all types from @adaptive-response/schema for consumer convenience.
  */
 
 export type {
@@ -15,9 +15,9 @@ export type {
   Meta,
   RiskLevel,
   Section,
-} from "@adaptive/schema";
+} from "@adaptive-response/schema";
 
-export { safeValidateAdaptiveResponse, validateAdaptiveResponse } from "@adaptive/schema";
+export { safeValidateAdaptiveResponse, validateAdaptiveResponse } from "@adaptive-response/schema";
 
 // ─── Client config ───────────────────────────────────────────────────────────
 
@@ -46,8 +46,8 @@ export interface ApiError {
 
 // ─── Client ──────────────────────────────────────────────────────────────────
 
-import type { AdaptiveResponse } from "@adaptive/schema";
-import { validateAdaptiveResponse } from "@adaptive/schema";
+import type { AdaptiveResponse } from "@adaptive-response/schema";
+import { validateAdaptiveResponse } from "@adaptive-response/schema";
 
 export class AdaptiveClient {
   private readonly baseUrl: string;

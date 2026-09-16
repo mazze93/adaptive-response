@@ -1,4 +1,4 @@
-import type { Alternative } from "@adaptive/sdk";
+import type { Alternative } from "@adaptive-response/sdk";
 
 interface AlternativesBlockProps {
   items: Alternative[];

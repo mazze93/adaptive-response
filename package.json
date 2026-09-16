@@ -3,9 +3,9 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r --filter './packages/**' build",
-    "dev:api": "pnpm --filter @adaptive/api dev",
-    "dev:demo": "pnpm --filter @adaptive/demo dev",
-    "test": "pnpm -r --filter './packages/**' --filter @adaptive/api test",
+    "dev:api": "pnpm --filter @adaptive-response/api dev",
+    "dev:demo": "pnpm --filter @adaptive-response/demo dev",
+    "test": "pnpm -r --filter './packages/**' --filter @adaptive-response/api test",
     "smoke": "node scripts/smoke.mjs",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

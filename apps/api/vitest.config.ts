@@ -12,8 +12,10 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
-      "@adaptive/core": fileURLToPath(new URL("../../packages/core/src/index.ts", import.meta.url)),
-      "@adaptive/schema": fileURLToPath(
+      "@adaptive-response/core": fileURLToPath(
+        new URL("../../packages/core/src/index.ts", import.meta.url),
+      ),
+      "@adaptive-response/schema": fileURLToPath(
         new URL("../../packages/schema/src/index.ts", import.meta.url),
       ),
     },

@@ -1,5 +1,5 @@
 /**
- * @adaptive/schema — unit tests
+ * @adaptive-response/schema — unit tests
  *
  * Covers:
  *   - Happy-path validation (answer, clarify, hybrid modes)
@@ -283,7 +283,7 @@ describe("toAdaptiveResponseJsonSchema", () => {
       expect.arrayContaining(["decision", "clarifying_questions", "answer", "meta"]),
     );
     // The full contract keeps tokens_estimated (unlike the model-facing tool
-    // schema in @adaptive/core, which strips it).
+    // schema in @adaptive-response/core, which strips it).
     expect(properties.meta?.properties?.tokens_estimated).toBeDefined();
   });
 

@@ -1,10 +1,10 @@
 /**
  * Adaptive Response API — Cloudflare Worker
  *
- * Thin HTTP transport over @adaptive/core (see ADR 0001): routing, CORS,
+ * Thin HTTP transport over @adaptive-response/core (see ADR 0001): routing, CORS,
  * rate limiting, body validation, and engine-error → HTTP-status mapping.
  * The engine itself — forced tool-use structured output, schema validation,
- * repair pass, retry/backoff — lives in @adaptive/core (ADR 0002).
+ * repair pass, retry/backoff — lives in @adaptive-response/core (ADR 0002).
  *
  * POST /v1/respond  { query: string, context?: string }
  *   → AdaptiveResponse JSON
@@ -32,7 +32,7 @@
  *   RATE_LIMITER      — Workers Rate Limiting binding
  */
 
-import { generateAdaptiveResponse } from "@adaptive/core";
+import { generateAdaptiveResponse } from "@adaptive-response/core";
 import { createMcpHandler } from "agents/mcp/server";
 import { createAdaptiveMcpServer } from "./mcp";
 

@@ -1,5 +1,5 @@
 /**
- * @adaptive/api — MCP transport tests
+ * @adaptive-response/api — MCP transport tests
  *
  * Exercises the /mcp endpoint end-to-end through `worker.fetch` with a
  * stubbed global fetch (no real Anthropic calls), plus unit tests for the
@@ -8,7 +8,7 @@
  * or as an SSE stream, so the reader below handles both.
  */
 
-import { ADAPTIVE_RESPONSE_TOOL_NAME } from "@adaptive/core";
+import { ADAPTIVE_RESPONSE_TOOL_NAME } from "@adaptive-response/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import worker from "./index.js";
 import { buildTextFallback, engineErrorText, RESPOND_TOOL_NAME } from "./mcp.js";

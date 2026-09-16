@@ -20,7 +20,7 @@ The model is *forced* to call a tool whose `input_schema` is generated from the 
 User query
   → POST /v1/respond (HTTP JSON)  ─┬─  (Cloudflare Worker — thin transports)
   → POST /mcp (MCP tool call)    ─┘
-  → @adaptive/core generateAdaptiveResponse()
+  → @adaptive-response/core generateAdaptiveResponse()
       → Anthropic Messages API (claude-sonnet-4-6), forced tool_choice:
         emit_adaptive_response — input_schema generated from the Zod schema
       → tool input validated against AdaptiveResponseSchema (Zod)
@@ -40,20 +40,20 @@ The model decides whether to answer directly, ask clarifying questions, or do bo
 |---|---|
 | `packages/schema` | Zod validators, inferred TypeScript types, and the JSON Schema export. Single source of truth. |
 | `packages/core` | Runtime-agnostic engine: forced tool-use call to Anthropic, Zod validation, one repair pass, retry/backoff. Embeddable in any modern JS runtime. |
-| `packages/sdk` | `AdaptiveClient` — typed fetch wrapper for `/v1/respond`. Re-exports all types from `@adaptive/schema`. |
+| `packages/sdk` | `AdaptiveClient` — typed fetch wrapper for `/v1/respond`. Re-exports all types from `@adaptive-response/schema`. |
 | `packages/ui` | React components: `ResponseRenderer`, `DecisionBanner`, `TldrBlock`, `SectionBlock`, `ListBlock`, `AlternativesBlock`. |
-| `apps/api` | Cloudflare Worker. Thin HTTP + MCP transports over `@adaptive/core`. |
+| `apps/api` | Cloudflare Worker. Thin HTTP + MCP transports over `@adaptive-response/core`. |
 | `apps/demo` | Vite + React demo app. Proxies `/v1` to the local Worker in dev. |
 
 ---
 
 ## Embedding the engine directly
 
-You don't need the Worker to use the engine — `@adaptive/core` runs in any modern
+You don't need the Worker to use the engine — `@adaptive-response/core` runs in any modern
 JS runtime (Node ≥ 20, Workers, Bun) and returns typed results instead of throwing:
 
 ```ts
-import { generateAdaptiveResponse } from "@adaptive/core";
+import { generateAdaptiveResponse } from "@adaptive-response/core";
 
 const result = await generateAdaptiveResponse(
   { query: "Should we use Postgres or D1 for this?", context: "We deploy on Cloudflare." },
@@ -90,7 +90,7 @@ generated from the Zod contract) plus a text fallback. When the decision mode
 is `clarify` or `hybrid`, answer the returned `clarifying_questions` and call
 the tool again with those answers in `context`.
 
-A local stdio package (`npx @adaptive/mcp`) is planned — see ADR 0003.
+A local stdio package (`npx @adaptive-response/mcp`) is planned — see ADR 0003.
 
 ---
 
@@ -209,7 +209,7 @@ interface AdaptiveResponse {
 }
 ```
 
-`@adaptive/schema` is the canonical definition. The Worker and the SDK both import from it — never define these types elsewhere.
+`@adaptive-response/schema` is the canonical definition. The Worker and the SDK both import from it — never define these types elsewhere.
 
 ---
 

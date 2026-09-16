@@ -1,13 +1,13 @@
 /**
  * Demo app — sends a query to /v1/respond (proxied to the local Worker)
- * and renders the result with @adaptive/ui.
+ * and renders the result with @adaptive-response/ui.
  *
  * Includes a static fixture so the UI works without a running API.
  */
 
-import type { AdaptiveResponse } from "@adaptive/sdk";
-import { AdaptiveClient } from "@adaptive/sdk";
-import { ResponseRenderer } from "@adaptive/ui";
+import type { AdaptiveResponse } from "@adaptive-response/sdk";
+import { AdaptiveClient } from "@adaptive-response/sdk";
+import { ResponseRenderer } from "@adaptive-response/ui";
 import { useState, useTransition } from "react";
 
 // ─── API client ──────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ const FIXTURE: AdaptiveResponse = {
       {
         title: "How it works",
         content:
-          "Type a query and press ⌘ + Enter. The request goes to the Cloudflare Worker, which calls the Anthropic API with a structured-output prompt. The JSON response is validated against the Zod schema in @adaptive/schema and rendered here.",
+          "Type a query and press ⌘ + Enter. The request goes to the Cloudflare Worker, which calls the Anthropic API with a structured-output prompt. The JSON response is validated against the Zod schema in @adaptive-response/schema and rendered here.",
       },
     ],
     assumptions: ["The Worker is running on localhost:8787 (or VITE_API_URL is set)."],

@@ -1,5 +1,5 @@
 {
-  "name": "@adaptive/sdk",
+  "name": "@adaptive-response/sdk",
   "version": "0.1.0",
   "license": "MIT",
   "repository": {
@@ -27,7 +27,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@adaptive/schema": "workspace:*"
+    "@adaptive-response/schema": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.1.0",

@@ -1,6 +1,6 @@
-// Public surface of @adaptive/ui
+// Public surface of @adaptive-response/ui
 
-// Re-export types so consumers don't need a separate @adaptive/sdk import
+// Re-export types so consumers don't need a separate @adaptive-response/sdk import
 export type {
   AdaptiveResponse,
   Alternative,
@@ -8,7 +8,7 @@ export type {
   Decision,
   Meta,
   Section,
-} from "@adaptive/sdk";
+} from "@adaptive-response/sdk";
 export { AlternativesBlock } from "./components/AlternativesBlock.js";
 export { DecisionBanner } from "./components/DecisionBanner.js";
 export { ListBlock } from "./components/ListBlock.js";
