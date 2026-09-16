@@ -1405,6 +1405,8 @@
       }
     }
     window.addEventListener("message", (e) => {
+      if (e.source !== window.parent) return;
+      if (typeof e.origin === "string" && e.origin !== window.location.origin) return;
       const type = e.data && e.data.type;
       if (type === "__dc_theme") {
         const t = e.data.theme;
