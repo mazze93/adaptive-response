@@ -6,9 +6,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
-      "@adaptive/schema": fileURLToPath(
-        new URL("../schema/src/index.ts", import.meta.url),
-      ),
+      "@adaptive/schema": fileURLToPath(new URL("../schema/src/index.ts", import.meta.url)),
     },
   },
   test: {

@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean --external react",
+    "build": "tsup src/index.ts --format esm --clean --external react && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {

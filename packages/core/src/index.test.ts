@@ -72,7 +72,10 @@ function makeConfig(fetchImpl: typeof fetch) {
 }
 
 /** Parse the JSON body of the nth request the fetch mock received. */
-function requestBody(fetchMock: ReturnType<typeof scriptedFetch>, n: number): {
+function requestBody(
+  fetchMock: ReturnType<typeof scriptedFetch>,
+  n: number,
+): {
   system: string;
   messages: Array<{ role: string; content: unknown }>;
   tools: Array<{ name: string; input_schema: Record<string, unknown> }>;
