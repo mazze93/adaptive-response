@@ -6,3 +6,5 @@ allowBuilds:
   esbuild: true
   sharp: true
   workerd: true
+  # transitive dep of `agents`; its postinstall only prints a funding banner
+  core-js-pure: false

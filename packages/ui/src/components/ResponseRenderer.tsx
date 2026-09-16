@@ -1,4 +1,4 @@
-import type { AdaptiveResponse } from "@adaptive/sdk";
+import type { AdaptiveResponse } from "@adaptive-response/sdk";
 import { AlternativesBlock } from "./AlternativesBlock.js";
 import { DecisionBanner } from "./DecisionBanner.js";
 import { ListBlock } from "./ListBlock.js";

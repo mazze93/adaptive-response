@@ -1,14 +1,28 @@
 /**
  * Adaptive Response API — Cloudflare Worker
  *
+ * Thin HTTP transport over @adaptive-response/core (see ADR 0001): routing, CORS,
+ * rate limiting, body validation, and engine-error → HTTP-status mapping.
+ * The engine itself — forced tool-use structured output, schema validation,
+ * repair pass, retry/backoff — lives in @adaptive-response/core (ADR 0002).
+ *
  * POST /v1/respond  { query: string, context?: string }
  *   → AdaptiveResponse JSON
+ *
+ * POST /mcp
+ *   → Stateless MCP endpoint (Streamable HTTP) exposing the `adaptive_respond`
+ *     tool — same engine, same contract (ADR 0003). Handled by
+ *     `createMcpHandler` from the Agents SDK; see ./mcp.ts.
  *
  * GET  /health
  *   → { status: "ok" }
  *
  * Secrets required (set via `wrangler secret put`):
  *   ANTHROPIC_API_KEY
+ *
+ * Optional secrets:
+ *   API_KEYS          — comma-separated Bearer keys for /v1/respond and /mcp
+ *                       (ADR 0004). Unset/empty = open access (dev/demo).
  *
  * Env vars (set in wrangler.toml [vars]):
  *   ANTHROPIC_MODEL   — defaults to "claude-sonnet-4-6"
@@ -18,7 +32,9 @@
  *   RATE_LIMITER      — Workers Rate Limiting binding
  */
 
-import { safeValidateAdaptiveResponse } from "@adaptive/schema";
+import { generateAdaptiveResponse } from "@adaptive-response/core";
+import { createMcpHandler } from "agents/mcp/server";
+import { createAdaptiveMcpServer } from "./mcp";
 
 // ─── Env binding ─────────────────────────────────────────────────────────────
 
@@ -31,54 +47,55 @@ interface Env {
   ANTHROPIC_MODEL: string;
   ALLOWED_ORIGINS: string;
   RATE_LIMITER: RateLimiter;
+  /** Optional Wrangler secret — comma-separated API keys. Unset = open access. */
+  API_KEYS?: string;
 }
 
-// ─── Anthropic API types (minimal surface) ───────────────────────────────────
+// ─── Bearer-key auth (ADR 0004) ─────────────────────────────────────────────
 
-interface AnthropicMessage {
-  role: "user" | "assistant";
-  content: string;
+/** Constant-time byte comparison — no early exit on mismatch. */
+function timingSafeEqualBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= (a[i] ?? 0) ^ (b[i] ?? 0);
+  }
+  return diff === 0;
 }
 
-interface AnthropicRequest {
-  model: string;
-  max_tokens: number;
-  system: string;
-  messages: AnthropicMessage[];
+/**
+ * Checks the request's Bearer token against the comma-separated API_KEYS
+ * secret. An unset/empty secret disables auth (dev/demo parity — ADR 0004).
+ *
+ * Keys are compared as SHA-256 digests: it equalises lengths (a requirement
+ * of the constant-time loop) and keeps the comparison timing independent of
+ * where a mismatch occurs in the raw key material.
+ */
+async function isAuthorized(request: Request, apiKeys: string | undefined): Promise<boolean> {
+  const keys = (apiKeys ?? "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k.length > 0);
+  if (keys.length === 0) return true; // auth disabled
+
+  const header = request.headers.get("Authorization") ?? "";
+  const match = /^Bearer\s+(.+)$/i.exec(header);
+  if (!match?.[1]) return false;
+
+  const encoder = new TextEncoder();
+  const presented = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", encoder.encode(match[1].trim())),
+  );
+
+  // Check every key (no early exit) so timing does not reveal which key
+  // position, if any, matched.
+  let authorized = false;
+  for (const key of keys) {
+    const expected = new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(key)));
+    authorized = timingSafeEqualBytes(presented, expected) || authorized;
+  }
+  return authorized;
 }
-
-interface AnthropicResponse {
-  content: Array<{ type: string; text: string }>;
-  usage?: { input_tokens: number; output_tokens: number };
-}
-
-// ─── System prompt ───────────────────────────────────────────────────────────
-
-const SYSTEM_PROMPT = `\
-You are an adaptive response engine. Analyse the user's query and respond \
-with a single JSON object that strictly matches this TypeScript interface — \
-no markdown fences, no prose outside the JSON:
-
-interface AdaptiveResponse {
-  decision: {
-    mode: "answer" | "clarify" | "hybrid";   // "clarify" when confidence<0.6 OR ambiguity=high; "answer" when confidence≥0.7 AND ambiguity low/medium; "hybrid" otherwise
-    confidence: number;                       // 0–1
-    ambiguity_level: "low" | "medium" | "high";
-    risk_level: "low" | "medium" | "high";
-  };
-  clarifying_questions?: string[];            // required (non-empty, each item non-empty) when mode is "clarify" or "hybrid"
-  answer: {
-    tldr: string;                             // always present, 1–2 sentences
-    sections?: Array<{ title: string; content: string }>;
-    assumptions?: string[];
-    alternatives?: Array<{ condition: string; approach: string }>;
-    risks?: string[];
-  };
-  meta: {
-    intent_type: "informational" | "analytical" | "generative" | "diagnostic" | "comparative";
-    complexity_score: number;                 // 0–10
-  };
-}`;
 
 // ─── Hardened response headers ────────────────────────────────────────────────
 
@@ -135,74 +152,69 @@ function jsonResponse(
   });
 }
 
-// ─── Retry with exponential backoff + full jitter ─────────────────────────────
-
-/** HTTP statuses worth retrying — transient upstream conditions. */
-const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 529]);
-
-export interface RetryOptions {
-  /** Additional attempts after the first (default 2 → up to 3 total). */
-  maxRetries?: number;
-  /** Backoff base in ms (default 250). */
-  baseDelayMs?: number;
-  /** Per-attempt delay ceiling in ms (default 2000). */
-  maxDelayMs?: number;
-  /** Injected for tests; defaults to a real setTimeout-based sleep. */
-  sleep?: (ms: number) => Promise<void>;
-  /** Injected for deterministic jitter in tests; defaults to Math.random. */
-  random?: () => number;
+/** 401 with the RFC 6750 challenge header, inside the standard envelope. */
+function unauthorizedResponse(cors: Record<string, string>, requestId: string): Response {
+  return new Response(JSON.stringify({ error: "Unauthorized", requestId }), {
+    status: 401,
+    headers: {
+      ...cors,
+      ...SECURITY_HEADERS,
+      "Content-Type": "application/json",
+      "WWW-Authenticate": 'Bearer realm="adaptive-api"',
+      "X-Request-ID": requestId,
+    },
+  });
 }
 
-function backoffDelay(attempt: number, base: number, max: number, random: () => number): number {
-  const cap = Math.min(base * 2 ** attempt, max);
-  // Full jitter: a random point in [0, cap]. Spreads retries out and avoids
-  // thundering-herd synchronisation across concurrent clients.
-  return Math.round(random() * cap);
-}
-
-/**
- * `fetch` with retry on transient failures — network errors and retryable HTTP
- * statuses (see RETRYABLE_STATUS) — using exponential backoff with full jitter.
- *
- * Non-retryable responses (e.g. 4xx) return immediately, as does the response
- * from the final attempt (the caller decides how to handle a lingering error
- * status). A network error that persists through the last attempt is rethrown.
- */
-export async function fetchWithRetry(
-  input: string,
-  init: RequestInit,
-  opts: RetryOptions = {},
-): Promise<Response> {
-  const maxRetries = opts.maxRetries ?? 2;
-  const baseDelayMs = opts.baseDelayMs ?? 250;
-  const maxDelayMs = opts.maxDelayMs ?? 2000;
-  const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
-  const random = opts.random ?? Math.random;
-
-  for (let attempt = 0; ; attempt++) {
-    try {
-      const res = await fetch(input, init);
-      if (RETRYABLE_STATUS.has(res.status) && attempt < maxRetries) {
-        await sleep(backoffDelay(attempt, baseDelayMs, maxDelayMs, random));
-        continue;
-      }
-      return res;
-    } catch (e) {
-      if (attempt < maxRetries) {
-        await sleep(backoffDelay(attempt, baseDelayMs, maxDelayMs, random));
-        continue;
-      }
-      throw e;
-    }
-  }
-}
-
-// ─── Worker entry point ──────────────────────────────────────────────────────
+// ─── Worker entry point ────────────────────────────────────────────────────────
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
     const requestId = crypto.randomUUID();
     const cors = buildCorsHeaders(request, env.ALLOWED_ORIGINS ?? "");
+    const url = new URL(request.url);
+
+    // MCP transport — the handler owns its own envelope (CORS, preflight,
+    // Origin validation), so it is dispatched before the REST plumbing below.
+    // Auth (ADR 0004) and rate limiting are applied first, keyed the same way
+    // as /v1/respond, since tool calls reach the same Anthropic-backed engine.
+    if (url.pathname === "/mcp") {
+      // OPTIONS is exempt: browsers never attach Authorization to preflights.
+      if (request.method !== "OPTIONS" && !(await isAuthorized(request, env.API_KEYS))) {
+        return unauthorizedResponse(cors, requestId);
+      }
+
+      const mcpClientIp = request.headers.get("CF-Connecting-IP") ?? crypto.randomUUID();
+      if (env.RATE_LIMITER && request.method === "POST") {
+        const { success } = await env.RATE_LIMITER.limit({ key: mcpClientIp });
+        if (!success) {
+          return jsonResponse(
+            { error: "Rate limit exceeded. Please slow down.", requestId },
+            429,
+            cors,
+            requestId,
+          );
+        }
+      }
+
+      // One handler per request is the documented stateless lifecycle (we use
+      // no MCP notifications or listen streams, which are the only features
+      // that need a module-scope handler).
+      const handler = createMcpHandler(() => createAdaptiveMcpServer(env), {
+        route: "/mcp",
+        // Browser CORS headers are omitted entirely — MCP clients are
+        // non-browser; this matches the API's deny-by-default posture. The
+        // handler still validates any Origin that is present.
+        corsOptions: false,
+        onerror: (error) => console.error("[mcp] handler_error", requestId, String(error)),
+      });
+      // Tests invoke `worker.fetch(request, env)` without a runtime context;
+      // the handler only uses `waitUntil`, so a no-op shim is safe there. The
+      // real Workers runtime always supplies `ctx`.
+      const executionCtx =
+        ctx ?? ({ waitUntil() {}, passThroughOnException() {} } as unknown as ExecutionContext);
+      return handler(request, env, executionCtx);
+    }
 
     // Pre-flight
     if (request.method === "OPTIONS") {
@@ -212,8 +224,6 @@ export default {
       });
     }
 
-    const url = new URL(request.url);
-
     // Health check
     if (request.method === "GET" && url.pathname === "/health") {
       return jsonResponse({ status: "ok" }, 200, cors, requestId);
@@ -222,6 +232,12 @@ export default {
     // Route guard
     if (request.method !== "POST" || url.pathname !== "/v1/respond") {
       return jsonResponse({ error: "Not found" }, 404, cors, requestId);
+    }
+
+    // Auth — checked before rate limiting and the Anthropic call (ADR 0004).
+    // An unset API_KEYS secret leaves the endpoint open (dev/demo parity).
+    if (!(await isAuthorized(request, env.API_KEYS))) {
+      return unauthorizedResponse(cors, requestId);
     }
 
     // Rate limiting — keyed on client IP, degrades gracefully if binding absent.
@@ -283,118 +299,45 @@ export default {
       );
     }
 
-    const userContent = context ? `Context:\n${context}\n\nQuery:\n${query}` : query;
+    // Run the engine. It returns typed results instead of throwing, so every
+    // failure mode below stays inside the CORS/requestId envelope.
+    const result = await generateAdaptiveResponse(
+      { query, context },
+      {
+        apiKey: env.ANTHROPIC_API_KEY,
+        model: env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
+      },
+    );
 
-    // Call Anthropic
-    const anthropicReq: AnthropicRequest = {
-      model: env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
-      max_tokens: 4096,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userContent }],
-    };
-
-    let anthropicRes: Response;
-    try {
-      // Retries transient failures (network errors, 429/5xx/529) with
-      // exponential backoff + full jitter before giving up.
-      anthropicRes = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": env.ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify(anthropicReq),
-      });
-    } catch (e) {
-      // Log internally via Cloudflare Logpush/tail — never expose network errors to callers
-      console.error("[502] upstream_network_error", requestId, String(e));
-      return jsonResponse({ error: "Upstream error", requestId }, 502, cors, requestId);
-    }
-
-    if (!anthropicRes.ok) {
-      const errText = await anthropicRes.text().catch(() => "");
-      // Log upstream API errors internally — do not return raw Anthropic error bodies
-      // as they may contain model/policy details useful to attackers.
-      console.error("[502] upstream_api_error", requestId, anthropicRes.status, errText);
-      return jsonResponse({ error: "Upstream error", requestId }, 502, cors, requestId);
-    }
-
-    // Parse the Anthropic response body. A 200 with a non-JSON body, or valid
-    // JSON that lacks the expected `content` array, must degrade to a 502
-    // rather than throwing unhandled and escaping the CORS/requestId envelope.
-    let rawText: string;
-    let anthropicUsage: AnthropicResponse["usage"];
-    try {
-      const anthropicData = (await anthropicRes.json()) as AnthropicResponse;
-      if (!Array.isArray(anthropicData.content)) {
-        throw new Error("missing content array");
+    if (!result.ok) {
+      switch (result.code) {
+        case "upstream_error":
+          // Log internally via Cloudflare Logpush/tail — never expose upstream
+          // details to callers (they may contain model/policy information).
+          console.error("[502] upstream_error", requestId, result.status ?? "", result.detail);
+          return jsonResponse({ error: "Upstream error", requestId }, 502, cors, requestId);
+        case "malformed_response":
+          console.error("[502] malformed_anthropic_response", requestId, result.detail);
+          return jsonResponse(
+            { error: "Anthropic API returned a malformed response", requestId },
+            502,
+            cors,
+            requestId,
+          );
+        case "invalid_model_output":
+          return jsonResponse(
+            {
+              error: "Model response failed schema validation",
+              issues: result.issues,
+              requestId,
+            },
+            502,
+            cors,
+            requestId,
+          );
       }
-
-      // Extract text from first text block
-      rawText = anthropicData.content
-        .filter((b) => b.type === "text")
-        .map((b) => b.text)
-        .join("")
-        .trim();
-
-      // Carry usage forward for token estimation below.
-      anthropicUsage = anthropicData.usage;
-    } catch (e) {
-      console.error("Malformed Anthropic API response", {
-        requestId,
-        error: e instanceof Error ? (e.stack ?? e.message) : String(e),
-      });
-
-      return jsonResponse(
-        { error: "Anthropic API returned a malformed response", requestId },
-        502,
-        cors,
-        requestId,
-      );
     }
 
-    // Strip markdown fences if the model wrapped the JSON despite instructions.
-    // Handles: ```json\n{...}\n``` and ```\n{...}\n```
-    const jsonText = rawText
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/\s*```$/, "")
-      .trim();
-
-    // Parse JSON from model output
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(jsonText);
-    } catch {
-      return jsonResponse(
-        { error: "Model returned non-JSON content", raw: rawText.slice(0, 500), requestId },
-        502,
-        cors,
-        requestId,
-      );
-    }
-
-    // Validate against schema
-    const validation = safeValidateAdaptiveResponse(parsed);
-    if (!validation.success) {
-      return jsonResponse(
-        {
-          error: "Model response failed schema validation",
-          issues: validation.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
-          requestId,
-        },
-        502,
-        cors,
-        requestId,
-      );
-    }
-
-    // Attach token usage to meta if available
-    if (anthropicUsage) {
-      validation.data.meta.tokens_estimated =
-        anthropicUsage.input_tokens + anthropicUsage.output_tokens;
-    }
-
-    return jsonResponse(validation.data, 200, cors, requestId);
+    return jsonResponse(result.response, 200, cors, requestId);
   },
 };

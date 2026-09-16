@@ -1,5 +1,5 @@
 {
-  "name": "@adaptive/demo",
+  "name": "@adaptive-response/demo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,8 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@adaptive/sdk": "workspace:*",
-    "@adaptive/ui": "workspace:*",
+    "@adaptive-response/sdk": "workspace:*",
+    "@adaptive-response/ui": "workspace:*",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

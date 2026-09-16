@@ -10,7 +10,7 @@
 **Problem:** LLM responses are unstructured and unpredictable in production pipelines.  
 **Solution:** Force the model to emit a typed, validated JSON object — with confidence scores, clarifying-question routing, and risk metadata — every time.
 
-Every response is run through a Zod schema at the API boundary. If the model hallucinates a shape, the Worker returns a 502 before bad data reaches your frontend.
+The model is *forced* to call a tool whose `input_schema` is generated from the Zod schema at runtime, so the shape cannot drift from the contract. Every response is validated at the engine boundary; if validation fails, the engine feeds the exact Zod issues back to the model for one repair pass before giving up. Architectural decisions are traced in [`docs/adr/`](docs/adr/README.md).
 
 ---
 
@@ -18,9 +18,14 @@ Every response is run through a Zod schema at the API boundary. If the model hal
 
 ```
 User query
-  → POST /v1/respond  (Cloudflare Worker)
-  → Anthropic Messages API  (claude-sonnet-4-6)
-  → JSON parsed + validated against AdaptiveResponseSchema (Zod)
+  → POST /v1/respond (HTTP JSON)  ─┬─  (Cloudflare Worker — thin transports)
+  → POST /mcp (MCP tool call)    ─┘
+  → @adaptive-response/core generateAdaptiveResponse()
+      → Anthropic Messages API (claude-sonnet-4-6), forced tool_choice:
+        emit_adaptive_response — input_schema generated from the Zod schema
+      → tool input validated against AdaptiveResponseSchema (Zod)
+      → on validation failure: one repair pass (Zod issues fed back as an
+        error tool_result), then fail with a typed engine error
   → AdaptiveResponse returned to client
   → ResponseRenderer displays it
 ```
@@ -33,11 +38,59 @@ The model decides whether to answer directly, ask clarifying questions, or do bo
 
 | Package | Description |
 |---|---|
-| `packages/schema` | Zod validators and inferred TypeScript types. Single source of truth. |
-| `packages/sdk` | `AdaptiveClient` — typed fetch wrapper for `/v1/respond`. Re-exports all types from `@adaptive/schema`. |
+| `packages/schema` | Zod validators, inferred TypeScript types, and the JSON Schema export. Single source of truth. |
+| `packages/core` | Runtime-agnostic engine: forced tool-use call to Anthropic, Zod validation, one repair pass, retry/backoff. Embeddable in any modern JS runtime. |
+| `packages/sdk` | `AdaptiveClient` — typed fetch wrapper for `/v1/respond`. Re-exports all types from `@adaptive-response/schema`. |
 | `packages/ui` | React components: `ResponseRenderer`, `DecisionBanner`, `TldrBlock`, `SectionBlock`, `ListBlock`, `AlternativesBlock`. |
-| `apps/api` | Cloudflare Worker. Calls Anthropic, validates the response, returns `AdaptiveResponse` JSON. |
+| `apps/api` | Cloudflare Worker. Thin HTTP + MCP transports over `@adaptive-response/core`. |
 | `apps/demo` | Vite + React demo app. Proxies `/v1` to the local Worker in dev. |
+
+---
+
+## Embedding the engine directly
+
+You don't need the Worker to use the engine — `@adaptive-response/core` runs in any modern
+JS runtime (Node ≥ 20, Workers, Bun) and returns typed results instead of throwing:
+
+```ts
+import { generateAdaptiveResponse } from "@adaptive-response/core";
+
+const result = await generateAdaptiveResponse(
+  { query: "Should we use Postgres or D1 for this?", context: "We deploy on Cloudflare." },
+  { apiKey: env.ANTHROPIC_API_KEY },
+);
+
+if (result.ok) {
+  result.response.decision.mode; // "answer" | "clarify" | "hybrid"
+} else {
+  result.code; // "upstream_error" | "malformed_response" | "invalid_model_output"
+}
+```
+
+---
+
+## MCP endpoint
+
+The Worker also serves the engine over MCP (Streamable HTTP) at `/mcp` — see
+[ADR 0003](docs/adr/0003-expose-engine-as-mcp.md). Any MCP host (Claude
+Desktop/Code, Zed, Cursor) can connect with zero integration code:
+
+```jsonc
+// e.g. in an MCP client config
+{
+  "adaptive-response": {
+    "url": "https://adaptive-api.your-account.workers.dev/mcp"
+  }
+}
+```
+
+One tool is exposed — `adaptive_respond` `{ query, context? }`. It returns the
+full `AdaptiveResponse` as `structuredContent` (typed by an `outputSchema`
+generated from the Zod contract) plus a text fallback. When the decision mode
+is `clarify` or `hybrid`, answer the returned `clarifying_questions` and call
+the tool again with those answers in `context`.
+
+A local stdio package (`npx @adaptive-response/mcp`) is planned — see ADR 0003.
 
 ---
 
@@ -73,6 +126,19 @@ cd apps/api
 npx wrangler secret put ANTHROPIC_API_KEY
 # paste your key when prompted
 ```
+
+### Protecting the endpoints (ADR 0004)
+
+Both `/v1/respond` and `/mcp` accept an optional Bearer-key gate. Set the
+`API_KEYS` secret (comma-separated keys) and every request must carry
+`Authorization: Bearer <key>`; leave it unset for open dev/demo access:
+
+```bash
+npx wrangler secret put API_KEYS
+# e.g. paste: key-for-app-a,key-for-app-b
+```
+
+The SDK's `apiKey` config sends this header automatically. `/health` stays open.
 
 ---
 
@@ -137,12 +203,13 @@ interface AdaptiveResponse {
   meta: {
     intent_type: "informational" | "analytical" | "generative" | "diagnostic" | "comparative";
     complexity_score: number;    // 0–10
-    tokens_estimated?: number;
+    tokens_estimated?: number;   // injected by the engine from Anthropic usage data
+    schema_version?: string;     // injected by the engine (SCHEMA_VERSION, semver)
   };
 }
 ```
 
-`@adaptive/schema` is the canonical definition. The Worker and the SDK both import from it — never define these types elsewhere.
+`@adaptive-response/schema` is the canonical definition. The Worker and the SDK both import from it — never define these types elsewhere.
 
 ---
 
@@ -153,5 +220,6 @@ See [SECURITY.md](SECURITY.md) for the responsible disclosure policy.
 Key hardening decisions in this project:
 - `ALLOWED_ORIGINS` defaults to `""` (deny-by-default). You must explicitly allowlist origins.
 - `ANTHROPIC_API_KEY` is stored as a Wrangler secret — it never appears in `wrangler.toml` or source.
+- Optional `API_KEYS` secret gates `/v1/respond` and `/mcp` with constant-time Bearer-key checks (ADR 0004).
 - Worker responses include `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Referrer-Policy: no-referrer`.
 - Upstream (Anthropic) errors are logged internally via `console.error` and never returned to callers.

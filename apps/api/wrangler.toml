@@ -3,9 +3,20 @@ main                = "src/index.ts"
 compatibility_date  = "2026-07-01"
 compatibility_flags = ["nodejs_compat"]
 
-# ── Variables ────────────────────────────────────────────────────────────────
+# Endpoints:
+#   POST /v1/respond — HTTP JSON transport
+#   POST /mcp        — stateless MCP transport (Streamable HTTP, ADR 0003).
+#                      Stateless by design: no Durable Object binding or
+#                      migrations are required for it.
+
+# ── Variables ──────────────────────────────────────────────────────────────────
 # ANTHROPIC_API_KEY must be stored as a secret, never in plaintext:
 #   wrangler secret put ANTHROPIC_API_KEY
+#
+# API_KEYS (optional secret, ADR 0004) — comma-separated Bearer keys accepted
+# on /v1/respond and /mcp. Unset or empty leaves both endpoints open (dev/demo
+# parity); set it before exposing a deployment to the public internet:
+#   wrangler secret put API_KEYS
 
 [vars]
 ANTHROPIC_MODEL      = "claude-sonnet-4-6"

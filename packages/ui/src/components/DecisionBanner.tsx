@@ -1,4 +1,4 @@
-import type { Decision } from "@adaptive/sdk";
+import type { Decision } from "@adaptive-response/sdk";
 
 // ─── Mode → colour mapping ────────────────────────────────────────────────────
 

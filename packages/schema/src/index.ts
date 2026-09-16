@@ -1,10 +1,18 @@
 /**
- * @adaptive/schema
+ * @adaptive-response/schema
  * Zod validators and inferred types for the AdaptiveResponse contract.
  * This is the single source of truth — SDK and API both import from here.
  */
 
 import { z } from "zod";
+
+/**
+ * Version of the AdaptiveResponse contract itself (semver). Injected into
+ * `meta.schema_version` by the engine so integrators can detect contract
+ * changes without pinning the package (ADR 0004). Bump the minor for additive
+ * changes, the major for breaking ones — and record the change in an ADR.
+ */
+export const SCHEMA_VERSION = "0.1.0";
 
 // ─── Leaf schemas ────────────────────────────────────────────────────────────
 
@@ -59,30 +67,71 @@ export const MetaSchema = z
     intent_type: IntentTypeSchema,
     complexity_score: z.number().min(0).max(10),
     tokens_estimated: z.number().nonnegative().optional(),
+    schema_version: z.string().min(1).optional(),
   })
   .strict();
 
-export const AdaptiveResponseSchema = z
+/**
+ * Base object shape without the cross-field refinement. Kept separate so
+ * `toAdaptiveResponseJsonSchema` can convert it (refinements are not
+ * representable by `z.toJSONSchema`). Not exported: consumers must always
+ * validate through `AdaptiveResponseSchema`, which enforces the invariant.
+ */
+const AdaptiveResponseBaseSchema = z
   .object({
     decision: DecisionSchema,
     clarifying_questions: z.array(z.string().min(1)).optional(),
     answer: AnswerSchema,
     meta: MetaSchema,
   })
-  .strict()
-  .superRefine((val, ctx) => {
-    const needsClarification = val.decision.mode === "clarify" || val.decision.mode === "hybrid";
-    if (
-      needsClarification &&
-      (!val.clarifying_questions || val.clarifying_questions.length === 0)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["clarifying_questions"],
-        message: `clarifying_questions must be a non-empty array when mode is "${val.decision.mode}"`,
-      });
-    }
-  });
+  .strict();
+
+export const AdaptiveResponseSchema = AdaptiveResponseBaseSchema.superRefine((val, ctx) => {
+  const needsClarification = val.decision.mode === "clarify" || val.decision.mode === "hybrid";
+  if (needsClarification && (!val.clarifying_questions || val.clarifying_questions.length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["clarifying_questions"],
+      message: `clarifying_questions must be a non-empty array when mode is "${val.decision.mode}"`,
+    });
+  }
+});
+
+// ─── JSON Schema export ──────────────────────────────────────────────────────
+
+/**
+ * The AdaptiveResponse contract as a JSON Schema (draft 2020-12) object.
+ *
+ * Generated from the Zod schema so the shape can never drift, then augmented
+ * with the one rule `z.toJSONSchema` cannot express — the superRefine
+ * cross-field invariant — encoded as an `allOf` if/then conditional.
+ *
+ * Consumers: the Anthropic tool `input_schema` in @adaptive-response/core, the future
+ * MCP tool `outputSchema` (ADR 0003), and non-TypeScript integrators (ADR 0004).
+ * Returns a fresh object on each call — callers may mutate their copy.
+ */
+export function toAdaptiveResponseJsonSchema(): Record<string, unknown> {
+  const jsonSchema = z.toJSONSchema(AdaptiveResponseBaseSchema) as Record<string, unknown>;
+  jsonSchema.allOf = [
+    {
+      if: {
+        properties: {
+          decision: {
+            properties: { mode: { enum: ["clarify", "hybrid"] } },
+            required: ["mode"],
+          },
+        },
+        required: ["decision"],
+      },
+      // biome-ignore lint/suspicious/noThenProperty: `then` is the JSON Schema conditional keyword, not a thenable.
+      then: {
+        required: ["clarifying_questions"],
+        properties: { clarifying_questions: { minItems: 1 } },
+      },
+    },
+  ];
+  return jsonSchema;
+}
 
 // ─── Inferred types ──────────────────────────────────────────────────────────
 

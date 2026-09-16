@@ -7,13 +7,15 @@ import { defineConfig } from "vitest/config";
 // global fetch — no workerd runtime needed. Plain Node environment (matches
 // the schema package's setup).
 //
-// @adaptive/schema is aliased to its source so these tests run against a clean
-// checkout with no prior build step (the package normally resolves to dist/).
-// Still an import of "@adaptive/schema" — just resolved to source at runtime.
+// Workspace packages are aliased to their sources so these tests run against a
+// clean checkout with no prior build step (they normally resolve to dist/).
 export default defineConfig({
   resolve: {
     alias: {
-      "@adaptive/schema": fileURLToPath(
+      "@adaptive-response/core": fileURLToPath(
+        new URL("../../packages/core/src/index.ts", import.meta.url),
+      ),
+      "@adaptive-response/schema": fileURLToPath(
         new URL("../../packages/schema/src/index.ts", import.meta.url),
       ),
     },

@@ -1,11 +1,11 @@
 {
-  "name": "@adaptive-response/schema",
+  "name": "@adaptive-response/core",
   "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mazze93/adaptive-response.git",
-    "directory": "packages/schema"
+    "directory": "packages/core"
   },
   "files": [
     "dist"
@@ -29,7 +29,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "zod": "^4.6.2"
+    "@adaptive-response/schema": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.1.0",

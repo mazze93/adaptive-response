@@ -14,37 +14,47 @@ The schema is the load-bearing artefact. Everything else (the Worker, the SDK, t
 
 ```
 packages/
-  schema/   @adaptive/schema   — Zod validators + inferred TS types. Source of truth.
-  sdk/      @adaptive/sdk      — AdaptiveClient fetch wrapper. Re-exports schema types.
-  ui/       @adaptive/ui       — React components that render AdaptiveResponse.
+  schema/   @adaptive-response/schema   — Zod validators + inferred TS types + JSON Schema export. Source of truth.
+  core/     @adaptive-response/core     — Runtime-agnostic engine: forced tool-use call to Anthropic,
+                                 validation, one repair pass, retry/backoff. (ADRs 0001–0002)
+  sdk/      @adaptive-response/sdk      — AdaptiveClient fetch wrapper. Re-exports schema types.
+  ui/       @adaptive-response/ui       — React components that render AdaptiveResponse.
 
 apps/
-  api/      @adaptive/api      — Cloudflare Worker. Calls Anthropic, validates, returns JSON.
-  demo/     @adaptive/demo     — Vite + React demo. Proxies /v1 → local Worker.
+  api/      @adaptive-response/api      — Cloudflare Worker. Thin HTTP + MCP transports over @adaptive-response/core.
+                                 /v1/respond (JSON) and /mcp (stateless MCP, ADR 0003).
+  demo/     @adaptive-response/demo     — Vite + React demo. Proxies /v1 → local Worker.
+
+docs/
+  adr/      Architecture Decision Records — read these before changing architecture.
+  design/   Cipher Gothic design prototype export (reference only; not built or linted).
 ```
 
 Dependency graph (no cycles):
 
 ```
-schema  ←  sdk  ←  ui
-schema  ←  api
-sdk     ←  demo
-ui      ←  demo
+schema  ←  core  ←  api
+schema  ←  sdk   ←  ui
+sdk, ui ←  demo
 ```
 
 ---
 
 ## Key invariants — never break these
 
-1. **`@adaptive/schema` is the single source of truth.** Types are never duplicated. The Worker and the SDK both import types from `@adaptive/schema`, never from each other.
+1. **`@adaptive-response/schema` is the single source of truth.** Types are never duplicated. The Worker and the SDK both import types from `@adaptive-response/schema`, never from each other.
 
 2. **All schemas use `.strict()`.** Unknown keys are rejected. This is intentional — the model is expected to return exactly the contracted shape.
 
-3. **`clarifying_questions` is required when `mode` is `"clarify"` or `"hybrid"`.** This is enforced by `superRefine` in `AdaptiveResponseSchema`. The Zod schema and the system prompt must stay in sync if either changes.
+3. **`clarifying_questions` is required when `mode` is `"clarify"` or `"hybrid"`.** This is enforced by `superRefine` in `AdaptiveResponseSchema`, mirrored in the JSON Schema export as an `allOf` if/then conditional, and stated in the policy prompt. The response *shape* can no longer drift — the Anthropic tool `input_schema` is generated from the Zod schema at runtime. Only the *policy* (mode thresholds, tldr length) is duplicated between the `SYSTEM_PROMPT` in `@adaptive-response/core` and the schema semantics; keep those in sync.
 
-4. **Validation happens at the API boundary, not in the SDK or UI.** The Worker validates the raw Anthropic response before returning it. The SDK runs the same validation on the client side as a second check. UI components trust their props.
+4. **Validation happens at the engine boundary, not in the SDK or UI.** `@adaptive-response/core` validates the model's tool input (with one repair pass) before returning it; every transport (the Worker today, MCP later) calls the same engine. The SDK runs the same validation on the client side as a second check. UI components trust their props.
 
-5. **`ANTHROPIC_API_KEY` is a Wrangler secret, never a `[vars]` entry.** Do not write it to `wrangler.toml`.
+6. **`@adaptive-response/core` never reads env or secrets.** Transports own configuration; the engine receives the API key via its config argument. It also never throws for expected failures — it returns a discriminated `EngineResult` that each transport maps to its own error envelope. `detail` fields are for internal logging only and must never reach callers.
+
+5. **`ANTHROPIC_API_KEY` is a Wrangler secret, never a `[vars]` entry.** Do not write it to `wrangler.toml`. The same goes for the optional `API_KEYS` auth secret (ADR 0004).
+
+7. **Engine-injected meta fields (`tokens_estimated`, `schema_version`) are stripped from the model-facing tool schema** in `buildAdaptiveResponseTool` and stamped by the engine after validation. If you add another engine-owned field, follow the same pattern.
 
 ---
 
@@ -69,7 +79,8 @@ interface AdaptiveResponse {
   meta: {
     intent_type: "informational" | "analytical" | "generative" | "diagnostic" | "comparative";
     complexity_score: number;        // 0–10
-    tokens_estimated?: number;       // injected by the Worker from Anthropic usage data
+    tokens_estimated?: number;       // injected by the engine from Anthropic usage data
+    schema_version?: string;         // injected by the engine (SCHEMA_VERSION from @adaptive-response/schema)
   };
 }
 ```
@@ -81,11 +92,19 @@ interface AdaptiveResponse {
 | Concern | File |
 |---|---|
 | Schema definition + validators | `packages/schema/src/index.ts` |
+| JSON Schema export | `packages/schema/src/index.ts` — `toAdaptiveResponseJsonSchema` |
 | Schema tests | `packages/schema/src/index.test.ts` |
+| Engine (Anthropic call, validation, repair pass) | `packages/core/src/index.ts` — `generateAdaptiveResponse` |
+| Anthropic tool definition | `packages/core/src/index.ts` — `buildAdaptiveResponseTool` |
+| Policy system prompt | `packages/core/src/index.ts` — `SYSTEM_PROMPT` constant |
+| Retry/backoff | `packages/core/src/index.ts` — `fetchWithRetry` |
+| Engine tests | `packages/core/src/index.test.ts` |
 | API client | `packages/sdk/src/index.ts` |
-| Worker entry point | `apps/api/src/index.ts` |
-| System prompt | `apps/api/src/index.ts` — `SYSTEM_PROMPT` constant |
+| Worker entry point (routing, transports) | `apps/api/src/index.ts` |
+| MCP server + `adaptive_respond` tool | `apps/api/src/mcp.ts` |
+| MCP transport tests | `apps/api/src/mcp.test.ts` |
 | CORS logic | `apps/api/src/index.ts` — `buildCorsHeaders` |
+| Architecture decisions | `docs/adr/` |
 | Top-level UI renderer | `packages/ui/src/components/ResponseRenderer.tsx` |
 | Demo app | `apps/demo/src/App.tsx` |
 | Vite dev proxy config | `apps/demo/vite.config.ts` |
@@ -96,22 +115,29 @@ interface AdaptiveResponse {
 ## Common tasks
 
 **Changing the response shape:**
-1. Update `packages/schema/src/index.ts` — add/remove fields in the relevant Zod schema.
-2. Update the `SYSTEM_PROMPT` in `apps/api/src/index.ts` to match.
+1. Update `packages/schema/src/index.ts` — add/remove fields in the relevant Zod schema. The Anthropic tool schema regenerates from it automatically; no prompt edit needed for shape changes.
+2. If the change has *behavioural* semantics (like the clarify/hybrid rule), update the `SYSTEM_PROMPT` policy in `packages/core/src/index.ts` and, for cross-field rules, the `allOf` conditional in `toAdaptiveResponseJsonSchema`.
 3. Update `packages/schema/src/index.test.ts` — add tests for the new field.
 4. Update UI components in `packages/ui/src/components/` as needed.
 
 **Adding a new UI component:**
 - Export it from `packages/ui/src/index.ts`.
-- It receives typed props from `@adaptive/sdk` — import types from there, not directly from `@adaptive/schema`.
+- It receives typed props from `@adaptive-response/sdk` — import types from there, not directly from `@adaptive-response/schema`.
 
 **Changing validation rules:**
-- All validation lives in `@adaptive/schema`. Do not add Zod logic to the SDK or UI.
+- All validation lives in `@adaptive-response/schema`. Do not add Zod logic to the core, SDK, or UI.
 - Run `pnpm test` after any schema change.
 
 **Adding a new API endpoint:**
 - Add a route guard branch in the `fetch` handler in `apps/api/src/index.ts`.
 - Return errors via `jsonResponse()` with appropriate status codes.
+
+**Adding a new transport (CLI, stdio MCP, …):**
+- Call `generateAdaptiveResponse` from `@adaptive-response/core`; map the `EngineResult` error codes to the transport's error envelope. Do not re-implement the Anthropic call, validation, or repair logic. `apps/api/src/mcp.ts` (remote MCP via `createMcpHandler`, ADR 0003) is the reference adapter; the stdio `@adaptive-response/mcp` package is still pending.
+- MCP note: use the stateless `createMcpHandler` lane (`agents/mcp/server` + MCP SDK v2). `McpAgent` is deprecated upstream — do not add a Durable Object for MCP unless a feature genuinely needs sessions.
+
+**Making an architectural decision:**
+- Record it in `docs/adr/` (next sequential number, Nygard format). Supersede — never rewrite — accepted ADRs.
 
 ---
 
@@ -133,5 +159,8 @@ pnpm dev:demo         # vite dev (localhost:5173, proxies /v1 → :8787)
 - **Do not add runtime type narrowing in UI components.** The schema is the boundary; by the time data reaches the UI it is already typed.
 - **Do not use `as Record<string, unknown>` casts** to work around schema types. If a field needs to be mutable after parsing, assign it directly — Zod output objects are plain mutable objects.
 - **Do not add fields to `wrangler.toml [vars]` that are secrets.** Use `wrangler secret put`.
-- **Do not define `AdaptiveResponse` or its sub-types anywhere other than `@adaptive/schema`.** Not in the Worker, not in the demo, not inline in components.
+- **Do not define `AdaptiveResponse` or its sub-types anywhere other than `@adaptive-response/schema`.** Not in the Worker, not in the demo, not inline in components.
 - **Do not skip the `.strict()` call** when extending schemas. The model should return exactly the contracted shape.
+- **Do not put provider calls, env access, or HTTP concerns in `@adaptive-response/core`** beyond what exists: the engine is transport-neutral and receives everything via arguments.
+- **Do not add install-time lifecycle scripts (`preinstall`/`install`/`postinstall`/`prepare`) or git/remote-URL dependencies to the published packages.** npm v12 blocks them by default on the consumer side; violating this forces every consumer to allowlist us (ADR 0004). Publishing itself uses trusted publishing (OIDC) — never create long-lived npm tokens.
+- **Do not port code from `docs/design/`.** The design prototype duplicates the schema and calls Anthropic in-browser — it is a visual reference only (see ADR 0005).
