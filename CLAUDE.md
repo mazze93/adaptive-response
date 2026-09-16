@@ -162,4 +162,5 @@ pnpm dev:demo         # vite dev (localhost:5173, proxies /v1 → :8787)
 - **Do not define `AdaptiveResponse` or its sub-types anywhere other than `@adaptive-response/schema`.** Not in the Worker, not in the demo, not inline in components.
 - **Do not skip the `.strict()` call** when extending schemas. The model should return exactly the contracted shape.
 - **Do not put provider calls, env access, or HTTP concerns in `@adaptive-response/core`** beyond what exists: the engine is transport-neutral and receives everything via arguments.
+- **Do not add install-time lifecycle scripts (`preinstall`/`install`/`postinstall`/`prepare`) or git/remote-URL dependencies to the published packages.** npm v12 blocks them by default on the consumer side; violating this forces every consumer to allowlist us (ADR 0004). Publishing itself uses trusted publishing (OIDC) — never create long-lived npm tokens.
 - **Do not port code from `docs/design/`.** The design prototype duplicates the schema and calls Anthropic in-browser — it is a visual reference only (see ADR 0005).
