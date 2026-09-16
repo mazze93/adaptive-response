@@ -236,6 +236,20 @@ describe("adaptive_respond tool", () => {
     const errored = rpc.error !== undefined || rpc.result?.isError === true;
     expect(errored).toBe(true);
   });
+
+  it("rejects a whitespace-only query, matching /v1/respond", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    // `min(1)` passes on the untrimmed string, so the handler's post-trim
+    // guard is what stops this reaching the engine with an empty query.
+    const rpc = await callTool(makeEnv(), { query: "   \n\t " });
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(rpc.result?.isError).toBe(true);
+    const text = rpc.result?.content?.find((c) => c.type === "text")?.text ?? "";
+    expect(text).toMatch(/non-empty/i);
+  });
 });
 
 // ─── Transport hardening ─────────────────────────────────────────────────────

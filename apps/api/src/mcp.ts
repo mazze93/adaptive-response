@@ -21,17 +21,25 @@ import { fromJsonSchema, McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
 export const MCP_SERVER_NAME = "adaptive-response";
+/** Advertised over MCP `initialize`. Keep in sync with apps/api/package.json. */
 export const MCP_SERVER_VERSION = "0.1.0";
 export const RESPOND_TOOL_NAME = "adaptive_respond";
+
+/**
+ * Model used when ANTHROPIC_MODEL is not set in wrangler.toml [vars].
+ * Shared with the HTTP transport so the two lanes cannot drift apart.
+ */
+export const DEFAULT_MODEL = "claude-sonnet-4-6";
 
 /** The slice of the Worker env the MCP server needs. */
 export interface McpEnv {
   ANTHROPIC_API_KEY: string;
-  ANTHROPIC_MODEL: string;
+  ANTHROPIC_MODEL?: string;
 }
 
 // Mirrors the /v1/respond HTTP limits so both transports enforce the same
-// input contract.
+// input contract. Note that min/max here apply to the untrimmed string; the
+// handler re-checks emptiness after trimming, as /v1/respond does.
 const RespondInputSchema = z.object({
   query: z.string().min(1).max(8_000).describe("The question or task to triage and answer."),
   context: z
@@ -106,12 +114,24 @@ export function createAdaptiveMcpServer(env: McpEnv): McpServer {
       ),
     },
     async ({ query, context }) => {
+      // `z.string().min(1)` runs against the untrimmed value, so a
+      // whitespace-only query passes input validation and would otherwise
+      // reach the engine empty. /v1/respond rejects that case with a 400;
+      // reject it here too so both transports honour the same contract.
+      const trimmedQuery = query.trim();
+      if (trimmedQuery === "") {
+        return {
+          content: [{ type: "text", text: "`query` must be a non-empty string." }],
+          isError: true,
+        };
+      }
+
       const trimmedContext = context?.trim();
       const result = await generateAdaptiveResponse(
-        { query: query.trim(), context: trimmedContext || undefined },
+        { query: trimmedQuery, context: trimmedContext || undefined },
         {
           apiKey: env.ANTHROPIC_API_KEY,
-          model: env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
+          model: env.ANTHROPIC_MODEL ?? DEFAULT_MODEL,
         },
       );
 
