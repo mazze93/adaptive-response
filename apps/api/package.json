@@ -10,7 +10,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@adaptive/core": "workspace:*"
+    "@adaptive/core": "workspace:*",
+    "@adaptive/schema": "workspace:*",
+    "@modelcontextprotocol/server": "2.0.0",
+    "agents": "^0.23.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260911.1",
