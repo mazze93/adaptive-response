@@ -34,7 +34,7 @@
 
 import { generateAdaptiveResponse } from "@adaptive-response/core";
 import { createMcpHandler } from "agents/mcp/server";
-import { createAdaptiveMcpServer } from "./mcp";
+import { createAdaptiveMcpServer, DEFAULT_MODEL } from "./mcp";
 
 // ─── Env binding ─────────────────────────────────────────────────────────────
 
@@ -44,7 +44,11 @@ interface RateLimiter {
 
 interface Env {
   ANTHROPIC_API_KEY: string;
-  ANTHROPIC_MODEL: string;
+  /**
+   * Set in wrangler.toml [vars], but typed optional: tests construct envs
+   * without it, so the DEFAULT_MODEL fallback below is a real code path.
+   */
+  ANTHROPIC_MODEL?: string;
   ALLOWED_ORIGINS: string;
   RATE_LIMITER: RateLimiter;
   /** Optional Wrangler secret — comma-separated API keys. Unset = open access. */
@@ -112,6 +116,10 @@ const SECURITY_HEADERS: Record<string, string> = {
  * Access-Control-Allow-Origin is omitted entirely when the request origin
  * is not in the allowlist — browsers will block the response without it,
  * which is the correct behaviour for denied origins.
+ *
+ * `Vary: Origin` is always sent: the response body is origin-independent but
+ * Access-Control-Allow-Origin is not, so without it a shared cache could
+ * replay one origin's allow header to a different origin.
  */
 function buildCorsHeaders(request: Request, allowedOrigins: string): Record<string, string> {
   const origin = request.headers.get("Origin") ?? "";
@@ -130,6 +138,7 @@ function buildCorsHeaders(request: Request, allowedOrigins: string): Record<stri
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age": "86400",
+    Vary: "Origin",
   };
 }
 
@@ -224,14 +233,15 @@ export default {
       });
     }
 
-    // Health check
+    // Health check — deliberately reachable before the auth gate below, so
+    // probes keep working when API_KEYS is set (dev/demo parity, ADR 0004).
     if (request.method === "GET" && url.pathname === "/health") {
       return jsonResponse({ status: "ok" }, 200, cors, requestId);
     }
 
     // Route guard
     if (request.method !== "POST" || url.pathname !== "/v1/respond") {
-      return jsonResponse({ error: "Not found" }, 404, cors, requestId);
+      return jsonResponse({ error: "Not found", requestId }, 404, cors, requestId);
     }
 
     // Auth — checked before rate limiting and the Anthropic call (ADR 0004).
@@ -280,7 +290,9 @@ export default {
     }
 
     const query = body.query.trim();
-    const context = typeof body.context === "string" ? body.context.trim() : undefined;
+    // `|| undefined` normalises a whitespace-only context to absent, matching
+    // the MCP transport (see mcp.ts) so both lanes hand the engine the same input.
+    const context = typeof body.context === "string" ? body.context.trim() || undefined : undefined;
 
     if (query.length > 8_000) {
       return jsonResponse(
@@ -305,7 +317,7 @@ export default {
       { query, context },
       {
         apiKey: env.ANTHROPIC_API_KEY,
-        model: env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
+        model: env.ANTHROPIC_MODEL ?? DEFAULT_MODEL,
       },
     );
 
