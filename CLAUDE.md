@@ -48,13 +48,15 @@ sdk, ui ←  demo
 
 3. **`clarifying_questions` is required when `mode` is `"clarify"` or `"hybrid"`.** This is enforced by `superRefine` in `AdaptiveResponseSchema`, mirrored in the JSON Schema export as an `allOf` if/then conditional, and stated in the policy prompt. The response *shape* can no longer drift — the Anthropic tool `input_schema` is generated from the Zod schema at runtime. Only the *policy* (mode thresholds, tldr length) is duplicated between the `SYSTEM_PROMPT` in `@adaptive-response/core` and the schema semantics; keep those in sync.
 
-4. **Validation happens at the engine boundary, not in the SDK or UI.** `@adaptive-response/core` validates the model's tool input (with one repair pass) before returning it; every transport (the Worker today, MCP later) calls the same engine. The SDK runs the same validation on the client side as a second check. UI components trust their props.
-
-6. **`@adaptive-response/core` never reads env or secrets.** Transports own configuration; the engine receives the API key via its config argument. It also never throws for expected failures — it returns a discriminated `EngineResult` that each transport maps to its own error envelope. `detail` fields are for internal logging only and must never reach callers.
+4. **Validation happens at the engine boundary, not in the SDK or UI.** `@adaptive-response/core` validates the model's tool input (with one repair pass) before returning it; both transports (HTTP `/v1/respond` and MCP `/mcp`) call the same engine. The SDK runs the same validation on the client side as a second check. UI components trust their props.
 
 5. **`ANTHROPIC_API_KEY` is a Wrangler secret, never a `[vars]` entry.** Do not write it to `wrangler.toml`. The same goes for the optional `API_KEYS` auth secret (ADR 0004).
 
+6. **`@adaptive-response/core` never reads env or secrets.** Transports own configuration; the engine receives the API key via its config argument. It also never throws for expected failures — it returns a discriminated `EngineResult` that each transport maps to its own error envelope. `detail` fields are for internal logging only and must never reach callers.
+
 7. **Engine-injected meta fields (`tokens_estimated`, `schema_version`) are stripped from the model-facing tool schema** in `buildAdaptiveResponseTool` and stamped by the engine after validation. If you add another engine-owned field, follow the same pattern.
+
+8. **Both transports enforce the same input contract.** `/v1/respond` and `/mcp` must accept and reject the same inputs: non-empty `query` after trimming, `query`/`context` capped at 8 000 characters, and whitespace-only `context` normalised to absent. The two lanes validate differently (hand-rolled checks vs. a Zod `inputSchema`), so a change to one needs the matching change in the other — note that Zod's `min`/`max` run against the *untrimmed* string.
 
 ---
 
@@ -103,6 +105,9 @@ interface AdaptiveResponse {
 | Worker entry point (routing, transports) | `apps/api/src/index.ts` |
 | MCP server + `adaptive_respond` tool | `apps/api/src/mcp.ts` |
 | MCP transport tests | `apps/api/src/mcp.test.ts` |
+| HTTP transport tests | `apps/api/src/index.test.ts` |
+| Bearer-key auth | `apps/api/src/index.ts` — `isAuthorized` |
+| Default model constant | `apps/api/src/mcp.ts` — `DEFAULT_MODEL` (shared by both transports) |
 | CORS logic | `apps/api/src/index.ts` — `buildCorsHeaders` |
 | Architecture decisions | `docs/adr/` |
 | Top-level UI renderer | `packages/ui/src/components/ResponseRenderer.tsx` |
@@ -145,12 +150,20 @@ interface AdaptiveResponse {
 
 ```bash
 pnpm install          # install all workspace dependencies
-pnpm build            # build packages/schema → packages/sdk → packages/ui
-pnpm test             # run all package tests (vitest)
+pnpm build            # build schema → core → sdk → ui (dependency order)
+pnpm test             # run all package tests + apps/api (vitest)
 pnpm typecheck        # tsc --noEmit across all packages
+pnpm lint             # biome check .
+pnpm lint:fix         # biome check --write .
+pnpm format           # biome format --write .
+pnpm clean            # delete every dist/ directory
+pnpm smoke            # scripts/smoke.mjs — live call, needs ANTHROPIC_API_KEY
 pnpm dev:api          # wrangler dev (localhost:8787)
 pnpm dev:demo         # vite dev (localhost:5173, proxies /v1 → :8787)
 ```
+
+CI (`.github/workflows/ci.yml`) pins **pnpm 9** and runs build → typecheck → test.
+It does not run `pnpm lint`, so check formatting locally before pushing.
 
 ---
 

@@ -102,7 +102,7 @@ A local stdio package (`npx @adaptive-response/mcp`) is planned — see ADR 0003
 # Install dependencies
 pnpm install
 
-# Build packages (schema → sdk → ui, in dependency order)
+# Build packages (schema → core → sdk → ui, in dependency order)
 pnpm build
 
 # Start the API Worker locally (requires wrangler)
@@ -138,7 +138,31 @@ npx wrangler secret put API_KEYS
 # e.g. paste: key-for-app-a,key-for-app-b
 ```
 
-The SDK's `apiKey` config sends this header automatically. `/health` stays open.
+The SDK's `apiKey` config sends this header automatically. `/health` stays open —
+it is routed before the auth gate so probes keep working with `API_KEYS` set.
+
+### Rate limiting
+
+Both `/v1/respond` and `/mcp` are rate limited through the Workers Rate Limiting
+binding declared in `apps/api/wrangler.toml` — **60 requests per 60-second
+window, keyed on client IP** (`CF-Connecting-IP`). Over-limit requests get a
+`429` with a JSON error body. Tune `limit`/`period` before production:
+
+```toml
+[[unsafe.bindings]]
+name         = "RATE_LIMITER"
+type         = "ratelimit"
+namespace_id = "1"
+
+[unsafe.bindings.simple]
+limit  = 60
+period = 60
+```
+
+The binding degrades gracefully: if it is absent (as in tests, or `wrangler dev`
+without the binding) requests are served unthrottled rather than failing. Note
+that auth is checked *before* rate limiting, so requests rejected with `401`
+never consume quota.
 
 ---
 
@@ -148,8 +172,8 @@ Set in `apps/api/wrangler.toml` under `[vars]`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `ANTHROPIC_MODEL` | `claude-sonnet-4-6` | Model used for all requests. |
-| `ALLOWED_ORIGINS` | `""` | Comma-separated CORS origins. **Empty = deny all cross-origin requests.** Set your production origin(s) before deploying. Never use `*` in production. |
+| `ANTHROPIC_MODEL` | `claude-sonnet-4-6` | Model used for all requests. The fallback when unset lives in `apps/api/src/mcp.ts` as `DEFAULT_MODEL`, shared by both transports. |
+| `ALLOWED_ORIGINS` | `""` | Comma-separated CORS origins. **Empty = deny all cross-origin requests.** Set your production origin(s) before deploying. Never use `*` in production. Responses carry `Vary: Origin` so shared caches cannot replay one origin's allow header to another. |
 
 For the demo app, set `VITE_API_URL` to point at a deployed Worker (leave unset in dev to use the Vite proxy):
 
@@ -163,11 +187,17 @@ VITE_API_URL=https://adaptive-api.your-account.workers.dev
 ## Development commands
 
 ```bash
-pnpm build        # Build all packages
-pnpm test         # Run all package tests
+pnpm build        # Build all packages (schema → core → sdk → ui)
+pnpm test         # Run all package tests, plus apps/api
 pnpm typecheck    # Type-check all packages
+pnpm lint         # Biome check (not run in CI — check locally)
+pnpm lint:fix     # Biome check --write
+pnpm format       # Biome format --write
+pnpm smoke        # Live end-to-end call (needs ANTHROPIC_API_KEY; see .env.example)
 pnpm clean        # Delete all dist/ directories
 ```
+
+CI pins **pnpm 9** and runs build → typecheck → test on every PR to `main`.
 
 ---
 
@@ -222,4 +252,7 @@ Key hardening decisions in this project:
 - `ANTHROPIC_API_KEY` is stored as a Wrangler secret — it never appears in `wrangler.toml` or source.
 - Optional `API_KEYS` secret gates `/v1/respond` and `/mcp` with constant-time Bearer-key checks (ADR 0004).
 - Worker responses include `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Referrer-Policy: no-referrer`.
+- CORS responses carry `Vary: Origin`, so a shared cache cannot serve one origin's `Access-Control-Allow-Origin` to another.
+- Both endpoints are rate limited (60 req / 60 s per IP by default) — see [Rate limiting](#rate-limiting).
+- Bearer keys are compared as SHA-256 digests in constant time, with no early exit on mismatch or on which key matched.
 - Upstream (Anthropic) errors are logged internally via `console.error` and never returned to callers.
