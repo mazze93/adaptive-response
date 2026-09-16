@@ -1,5 +1,5 @@
 /**
- * @adaptive/api — Worker tests
+ * @adaptive-response/api — Worker tests
  *
  * We call `worker.fetch(request, env)` directly with a hand-built env, so we
  * can inject a fake RATE_LIMITER and stub global fetch (no real Anthropic
@@ -8,10 +8,10 @@
  * These are transport-level tests: routing, CORS, rate limiting, body
  * validation, and engine-error → HTTP-status mapping. The engine internals
  * (tool schema, repair-pass mechanics, retry/backoff) are unit-tested in
- * @adaptive/core; here we only exercise them end-to-end through the Worker.
+ * @adaptive-response/core; here we only exercise them end-to-end through the Worker.
  */
 
-import { ADAPTIVE_RESPONSE_TOOL_NAME } from "@adaptive/core";
+import { ADAPTIVE_RESPONSE_TOOL_NAME } from "@adaptive-response/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import worker from "./index.js";
 

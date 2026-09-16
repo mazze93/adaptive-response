@@ -1,5 +1,5 @@
 /**
- * @adaptive/schema
+ * @adaptive-response/schema
  * Zod validators and inferred types for the AdaptiveResponse contract.
  * This is the single source of truth — SDK and API both import from here.
  */
@@ -106,7 +106,7 @@ export const AdaptiveResponseSchema = AdaptiveResponseBaseSchema.superRefine((va
  * with the one rule `z.toJSONSchema` cannot express — the superRefine
  * cross-field invariant — encoded as an `allOf` if/then conditional.
  *
- * Consumers: the Anthropic tool `input_schema` in @adaptive/core, the future
+ * Consumers: the Anthropic tool `input_schema` in @adaptive-response/core, the future
  * MCP tool `outputSchema` (ADR 0003), and non-TypeScript integrators (ADR 0004).
  * Returns a fresh object on each call — callers may mutate their copy.
  */

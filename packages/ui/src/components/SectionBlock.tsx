@@ -1,4 +1,4 @@
-import type { Section } from "@adaptive/sdk";
+import type { Section } from "@adaptive-response/sdk";
 
 interface SectionBlockProps {
   section: Section;

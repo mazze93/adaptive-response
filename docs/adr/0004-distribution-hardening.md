@@ -18,11 +18,20 @@ it invites third-party clients to point at the Worker.
    Also ship the generated JSON Schema (`toAdaptiveResponseJsonSchema()`) as a
    build artefact for non-TypeScript consumers.
    *Implemented so far:* publish metadata on all four packages (`license`,
-   `repository`, `files: ["dist"]`, `publishConfig.access: public`).
-   *Open question:* the `@adaptive` npm scope is unlikely to be available; the
-   packages may need a rename (e.g. a scope the owner controls) before first
-   publish. Renaming is a breaking decision — record it as an amendment here
-   when made. CI release automation (changesets or similar) is also pending.
+   `repository`, `files: ["dist"]`, `publishConfig.access: public`), and the
+   scope rename below. CI release automation (changesets or similar) is still
+   pending, as is creating the npm org itself.
+
+   **Amendment (2026-09-16) — scope rename `@adaptive/*` → `@adaptive-response/*`.**
+   The `@adaptive` npm scope is a bare generic word: nothing is published
+   under it, but scope ownership cannot be verified from the public registry
+   and a name that generic is almost certainly reserved by an existing npm
+   username. `@adaptive-response` matches the GitHub repository exactly, is
+   specific enough to be safely claimable as an npm org, and gives future
+   packages a coherent home (`@adaptive-response/mcp`). All workspace
+   packages, imports, and docs were renamed; earlier ADRs intentionally keep
+   the historical `@adaptive/*` names they were written with. Before first
+   publish, create the `adaptive-response` npm org.
 
 2. **Add `schema_version` to `meta`.** *Implemented:* `@adaptive/schema`
    exports `SCHEMA_VERSION` (semver, currently `0.1.0`); `meta.schema_version`

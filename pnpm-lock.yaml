@@ -17,10 +17,10 @@ importers:
 
   apps/api:
     dependencies:
-      '@adaptive/core':
+      '@adaptive-response/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@adaptive/schema':
+      '@adaptive-response/schema':
         specifier: workspace:*
         version: link:../../packages/schema
       '@modelcontextprotocol/server':
@@ -48,10 +48,10 @@ importers:
 
   apps/demo:
     dependencies:
-      '@adaptive/sdk':
+      '@adaptive-response/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
-      '@adaptive/ui':
+      '@adaptive-response/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       react:
@@ -79,7 +79,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@adaptive/schema':
+      '@adaptive-response/schema':
         specifier: workspace:*
         version: link:../schema
     devDependencies:
@@ -111,7 +111,7 @@ importers:
 
   packages/sdk:
     dependencies:
-      '@adaptive/schema':
+      '@adaptive-response/schema':
         specifier: workspace:*
         version: link:../schema
     devDependencies:
@@ -124,7 +124,7 @@ importers:
 
   packages/ui:
     dependencies:
-      '@adaptive/sdk':
+      '@adaptive-response/sdk':
         specifier: workspace:*
         version: link:../sdk
     devDependencies:

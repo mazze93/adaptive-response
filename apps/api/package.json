@@ -1,5 +1,5 @@
 {
-  "name": "@adaptive/api",
+  "name": "@adaptive-response/api",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@adaptive/core": "workspace:*",
-    "@adaptive/schema": "workspace:*",
+    "@adaptive-response/core": "workspace:*",
+    "@adaptive-response/schema": "workspace:*",
     "@modelcontextprotocol/server": "2.0.0",
     "agents": "^0.23.0",
     "zod": "^4.6.5"

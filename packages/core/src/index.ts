@@ -1,10 +1,10 @@
 /**
- * @adaptive/core
+ * @adaptive-response/core
  * Runtime-agnostic engine that turns a query into a validated AdaptiveResponse.
  *
  * Structured output is enforced with Anthropic tool-use: the model is forced to
  * call `emit_adaptive_response`, whose input_schema is generated from the Zod
- * schema in @adaptive/schema — the shape can never drift from the contract.
+ * schema in @adaptive-response/schema — the shape can never drift from the contract.
  * If the tool input fails Zod validation, exactly one repair pass feeds the
  * issues back as an error tool_result before giving up. (ADRs 0001 & 0002.)
  *
@@ -12,12 +12,12 @@
  * Workers, Node ≥ 20, and Bun. Never reads env; the caller supplies config.
  */
 
-import type { AdaptiveResponse } from "@adaptive/schema";
+import type { AdaptiveResponse } from "@adaptive-response/schema";
 import {
   SCHEMA_VERSION,
   safeValidateAdaptiveResponse,
   toAdaptiveResponseJsonSchema,
-} from "@adaptive/schema";
+} from "@adaptive-response/schema";
 
 // ─── Retry with exponential backoff + full jitter ─────────────────────────────
 
@@ -105,7 +105,7 @@ export interface AnthropicTool {
  * The forced tool the model must call. Its input_schema is generated from the
  * canonical Zod schema, minus the engine-injected fields the model must not
  * set: `meta.tokens_estimated` (real usage comes from the API's usage data)
- * and `meta.schema_version` (stamped from @adaptive/schema's SCHEMA_VERSION).
+ * and `meta.schema_version` (stamped from @adaptive-response/schema's SCHEMA_VERSION).
  */
 export function buildAdaptiveResponseTool(): AnthropicTool {
   const schema = toAdaptiveResponseJsonSchema() as JsonSchemaNode;
@@ -129,7 +129,7 @@ export function buildAdaptiveResponseTool(): AnthropicTool {
 //
 // Shape lives in the tool schema (generated from Zod); this prompt carries only
 // the decision policy. If the *semantics* of the contract change, update both
-// this and @adaptive/schema (see CLAUDE.md invariant #3).
+// this and @adaptive-response/schema (see CLAUDE.md invariant #3).
 
 const SYSTEM_PROMPT = `\
 You are an adaptive response engine. Analyse the user's query, then call the \

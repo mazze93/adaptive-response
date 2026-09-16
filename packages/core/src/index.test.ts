@@ -1,5 +1,5 @@
 /**
- * @adaptive/core — engine tests
+ * @adaptive-response/core — engine tests
  *
  * The Anthropic call is exercised through an injected fetch (RetryOptions.fetchImpl),
  * so no globals are stubbed and no real network is touched.
@@ -10,7 +10,7 @@
  *   - generateAdaptiveResponse: happy path, repair pass, error mapping
  */
 
-import { SCHEMA_VERSION } from "@adaptive/schema";
+import { SCHEMA_VERSION } from "@adaptive-response/schema";
 import { describe, expect, it, vi } from "vitest";
 import {
   ADAPTIVE_RESPONSE_TOOL_NAME,

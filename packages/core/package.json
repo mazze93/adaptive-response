@@ -1,5 +1,5 @@
 {
-  "name": "@adaptive/core",
+  "name": "@adaptive-response/core",
   "version": "0.1.0",
   "license": "MIT",
   "repository": {
@@ -29,7 +29,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@adaptive/schema": "workspace:*"
+    "@adaptive-response/schema": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.1.0",

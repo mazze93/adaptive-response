@@ -6,16 +6,16 @@
  * same `generateAdaptiveResponse` engine as the HTTP transport.
  *
  * The tool's `outputSchema` is the canonical JSON Schema exported by
- * @adaptive/schema — the same artefact that drives the Anthropic tool
+ * @adaptive-response/schema — the same artefact that drives the Anthropic tool
  * definition — so all transports advertise one contract. Hosts that support
  * structured content get the full typed AdaptiveResponse; others get a text
  * fallback (tldr + clarifying questions + decision metadata).
  */
 
-import type { EngineResult } from "@adaptive/core";
-import { generateAdaptiveResponse } from "@adaptive/core";
-import type { AdaptiveResponse } from "@adaptive/schema";
-import { toAdaptiveResponseJsonSchema } from "@adaptive/schema";
+import type { EngineResult } from "@adaptive-response/core";
+import { generateAdaptiveResponse } from "@adaptive-response/core";
+import type { AdaptiveResponse } from "@adaptive-response/schema";
+import { toAdaptiveResponseJsonSchema } from "@adaptive-response/schema";
 import type { JsonSchemaType } from "@modelcontextprotocol/server";
 import { fromJsonSchema, McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
