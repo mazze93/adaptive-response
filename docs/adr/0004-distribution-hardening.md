@@ -1,6 +1,6 @@
 # 0004 — Distribution hardening: npm publishing, schema versioning, API auth
 
-- **Status:** Accepted — auth and `schema_version` implemented 2026-09-16; npm publishing prepared but pending a scope decision
+- **Status:** Accepted — auth and `schema_version` implemented 2026-09-16; scope renamed and release workflow wired the same day; first publish pending manual npm org setup
 - **Date:** 2026-09-16
 
 ## Context
@@ -32,6 +32,26 @@ it invites third-party clients to point at the Worker.
    packages, imports, and docs were renamed; earlier ADRs intentionally keep
    the historical `@adaptive/*` names they were written with. Before first
    publish, create the `adaptive-response` npm org.
+
+   **Amendment (2026-09-16) — npm v12 dictates the release mechanics.**
+   npm v12 GA turns install-time security defaults on (dependency lifecycle
+   scripts, git deps, and remote-URL deps are all opt-in for consumers) and
+   begins deprecating 2FA-bypass granular access tokens: they lose sensitive
+   account/package management (~Aug 2026) and direct publishing (~Jan 2027).
+   Consequences adopted here:
+
+   - **Publishing uses npm trusted publishing (OIDC) from GitHub Actions**
+     (`.github/workflows/release.yml`) with `--provenance`. No long-lived npm
+     tokens exist anywhere — not in CI secrets, not locally for automation.
+     Sensitive npm account/org actions are performed interactively with 2FA.
+     One-time manual setup (npm org creation, first publish, trusted-publisher
+     config per package) is documented in the workflow header.
+   - **Published packages must stay friction-free under npm v12 defaults:**
+     no `preinstall`/`install`/`postinstall`/`prepare` scripts, no git or
+     remote-URL dependencies, no `node-gyp` builds. All four packages comply
+     today (plain `dist/` artefacts, registry deps only) — this is now an
+     invariant, since any violation would force every consumer to allowlist
+     us before `npm install` works.
 
 2. **Add `schema_version` to `meta`.** *Implemented:* `@adaptive/schema`
    exports `SCHEMA_VERSION` (semver, currently `0.1.0`); `meta.schema_version`
