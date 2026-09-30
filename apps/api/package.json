@@ -12,8 +12,8 @@
   "dependencies": {
     "@adaptive-response/core": "workspace:*",
     "@adaptive-response/schema": "workspace:*",
-    "@modelcontextprotocol/server": "2.0.0",
-    "agents": "^0.23.0",
+    "@modelcontextprotocol/server": "2.1.0",
+    "agents": "^0.24.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
