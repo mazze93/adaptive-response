@@ -30,7 +30,7 @@
     "@adaptive-response/schema": "workspace:*"
   },
   "devDependencies": {
-    "tsup": "^8.1.0",
+    "tsup": "^9.0.0",
     "typescript": "^7.0.2"
   }
 }
