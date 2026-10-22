@@ -1,0 +1,45 @@
+
+> adaptive-response@ build /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022
+> pnpm -r --filter './packages/**' build
+
+Scope: 4 of 7 workspace projects
+packages/schema build$ tsup src/index.ts --format esm --clean && tsc -p tsconfig.build.json
+packages/schema build: CLI Building entry: src/index.ts
+packages/schema build: CLI Using tsconfig: tsconfig.json
+packages/schema build: CLI tsup v9.0.0
+packages/schema build: CLI Target: es2022
+packages/schema build: CLI Cleaning output folder
+packages/schema build: ESM Build start
+packages/schema build: ESM dist/index.js 3.00 KB
+packages/schema build: ESM ⚡️ Build success in 29ms
+packages/schema build: Done
+packages/core build$ tsup src/index.ts --format esm --clean && tsc -p tsconfig.build.json
+packages/sdk build$ tsup src/index.ts --format esm --clean && tsc -p tsconfig.build.json
+packages/sdk build: CLI Building entry: src/index.ts
+packages/core build: CLI Building entry: src/index.ts
+packages/sdk build: CLI Using tsconfig: tsconfig.json
+packages/sdk build: CLI tsup v9.0.0
+packages/core build: CLI Using tsconfig: tsconfig.json
+packages/core build: CLI tsup v9.0.0
+packages/sdk build: CLI Target: es2022
+packages/core build: CLI Target: es2022
+packages/core build: CLI Cleaning output folder
+packages/sdk build: CLI Cleaning output folder
+packages/core build: ESM Build start
+packages/sdk build: ESM Build start
+packages/core build: ESM dist/index.js 5.93 KB
+packages/core build: ESM ⚡️ Build success in 11ms
+packages/sdk build: ESM dist/index.js 1.39 KB
+packages/sdk build: ESM ⚡️ Build success in 10ms
+packages/sdk build: Done
+packages/core build: Done
+packages/ui build$ tsup src/index.ts --format esm --clean --external react && tsc -p tsconfig.build.json
+packages/ui build: CLI Building entry: src/index.ts
+packages/ui build: CLI Using tsconfig: tsconfig.json
+packages/ui build: CLI tsup v9.0.0
+packages/ui build: CLI Target: es2022
+packages/ui build: CLI Cleaning output folder
+packages/ui build: ESM Build start
+packages/ui build: ESM dist/index.js 8.83 KB
+packages/ui build: ESM ⚡️ Build success in 12ms
+packages/ui build: Done

@@ -23,7 +23,7 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --clean --external react && tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
@@ -35,7 +35,6 @@
   "devDependencies": {
     "@types/react": "^19.3.0",
     "react": "^19.3.1",
-    "tsup": "^9.0.0",
     "typescript": "^7.0.2"
   }
 }
