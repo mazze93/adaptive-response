@@ -13,3 +13,7 @@ updates:
         dependency-type: "development"
       production-dependencies:
         dependency-type: "production"
+      security-updates:
+        applies-to: "security-updates"
+        patterns:
+          - "*"

@@ -26,7 +26,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
-          version: 9
+          version: 9.15.9
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -35,23 +35,15 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        # Use --no-frozen-lockfile so pnpm.overrides can resolve without
-        # requiring a pre-committed lockfile regeneration in CI.
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Run pnpm audit
-        # Fail on high/critical; allow moderate (adjust as needed)
-        run: pnpm audit --audit-level=high
+        # Fail on every reported severity; no advisory suppressions.
+        run: pnpm audit --audit-level=low
         continue-on-error: false
 
-      - name: Check esbuild version is patched
-        # Ensure pnpm.overrides is resolving esbuild to >=0.25.0
-        run: |
-          ESBUILD_VER=$(pnpm ls esbuild --depth=Infinity 2>/dev/null | grep ' esbuild ' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | head -1)
-          echo "Resolved esbuild: $ESBUILD_VER"
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$ESBUILD_VER"
-          if [ "$MAJOR" -eq 0 ] && [ "$MINOR" -lt 25 ]; then
-            echo "ERROR: esbuild $ESBUILD_VER is below 0.25.0 — CVE not patched!"
-            exit 1
-          fi
-          echo "OK: esbuild $ESBUILD_VER >= 0.25.0"
+      - name: Check every resolved esbuild version
+        run: python3 scripts/check-esbuild.py
+
+      - name: Test dependency validation regressions
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v

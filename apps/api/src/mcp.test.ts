@@ -177,6 +177,76 @@ describe("POST /mcp protocol surface", () => {
     const res = await worker.fetch(new Request("https://api.test/nope"), makeEnv());
     expect(res.status).toBe(404);
   });
+
+  it.each(["https://attacker.example", "null", "not-an-origin"])(
+    "rejects an untrusted or malformed Origin (%s) before calling the engine",
+    async (origin) => {
+      const fetchSpy = vi.fn();
+      vi.stubGlobal("fetch", fetchSpy);
+      const request = rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" });
+      request.headers.set("Origin", origin);
+      const res = await worker.fetch(request, makeEnv());
+      expect(res.status).toBe(403);
+      expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    },
+  );
+
+  it("preserves localhost Origin validation without adding browser CORS headers", async () => {
+    const request = rpcRequest({ jsonrpc: "2.0", id: 1, method: "tools/list" });
+    request.headers.set("Origin", "http://localhost:5173");
+    const res = await worker.fetch(request, makeEnv());
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
+    expect((await readRpc(res)).result?.tools?.some((t) => t.name === RESPOND_TOOL_NAME)).toBe(
+      true,
+    );
+  });
+
+  it("accepts its workers.dev Origin but rejects a spoofed Host on that endpoint", async () => {
+    const url = "https://adaptive-api.example.workers.dev/mcp";
+    const init = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
+        Origin: "https://adaptive-api.example.workers.dev",
+        Host: "adaptive-api.example.workers.dev",
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+    };
+    const accepted = await worker.fetch(new Request(url, init), makeEnv());
+    expect(accepted.status).toBe(200);
+    const spoofed = new Request(url, init);
+    spoofed.headers.set("Host", "attacker.example");
+    expect((await worker.fetch(spoofed, makeEnv())).status).toBe(403);
+  });
+
+  it.each(["GET", "DELETE"])(
+    "rejects %s session operations on the stateless endpoint",
+    async (method) => {
+      const res = await worker.fetch(new Request("https://api.test/mcp", { method }), makeEnv());
+      expect(res.status).toBe(405);
+    },
+  );
+
+  it("rejects malformed JSON without calling the engine", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    const res = await worker.fetch(
+      new Request("https://api.test/mcp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json, text/event-stream",
+        },
+        body: "{broken",
+      }),
+      makeEnv(),
+    );
+    expect(res.status).toBe(400);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
 });
 
 // ─── Tool behaviour ──────────────────────────────────────────────────────────

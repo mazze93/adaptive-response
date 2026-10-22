@@ -92,6 +92,8 @@ the tool again with those answers in `context`.
 
 A local stdio package (`npx @adaptive-response/mcp`) is planned — see ADR 0003.
 
+The remote handler uses the narrow official MCP SDK directly, with explicit Host/Origin validation — see [ADR 0006](docs/adr/0006-narrow-mcp-and-typescript-builds.md). The dependency reduction and Theatre evidence are recorded in the [audit report](docs/audits/dependency-reduction-20261022/README.md).
+
 ---
 
 ## Getting started
@@ -197,7 +199,7 @@ pnpm smoke        # Live end-to-end call (needs ANTHROPIC_API_KEY; see .env.exam
 pnpm clean        # Delete all dist/ directories
 ```
 
-CI pins **pnpm 9** and runs build → typecheck → test on every PR to `main`.
+CI pins **pnpm 9.15.9**, installs the frozen lockfile, and checks library builds, types, tests, the demo build, a Worker dry-run, and packed package imports/declarations on every PR to `main`.
 
 ---
 

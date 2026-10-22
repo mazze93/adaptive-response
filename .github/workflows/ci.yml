@@ -25,7 +25,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
-          version: 9
+          version: 9.15.9
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -34,9 +34,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        # --no-frozen-lockfile so pnpm.overrides resolve without requiring a
-        # pre-committed lockfile regeneration (matches security.yml).
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build and typecheck
         # Builds packages/schema→sdk→ui first (typecheck depends on their dist).
@@ -44,3 +42,14 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Build demo
+        run: pnpm --filter @adaptive-response/demo build
+
+      - name: Bundle Worker without deploying
+        env:
+          WRANGLER_SEND_METRICS: 'false'
+        run: pnpm --filter @adaptive-response/api exec wrangler deploy --dry-run --env="" --outdir dist-dry-run
+
+      - name: Check packed public package imports and declarations
+        run: python3 scripts/test-package-artifacts.py
