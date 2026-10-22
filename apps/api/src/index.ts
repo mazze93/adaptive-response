@@ -12,7 +12,7 @@
  * POST /mcp
  *   → Stateless MCP endpoint (Streamable HTTP) exposing the `adaptive_respond`
  *     tool — same engine, same contract (ADR 0003). Handled by
- *     `createMcpHandler` from the Agents SDK; see ./mcp.ts.
+ *     `createMcpHandler` from the official MCP SDK; see ./mcp.ts.
  *
  * GET  /health
  *   → { status: "ok" }
@@ -33,7 +33,13 @@
  */
 
 import { generateAdaptiveResponse } from "@adaptive-response/core";
-import { createMcpHandler } from "agents/mcp/server";
+import {
+  createMcpHandler,
+  hostHeaderValidationResponse,
+  localhostAllowedHostnames,
+  localhostAllowedOrigins,
+  originValidationResponse,
+} from "@modelcontextprotocol/server";
 import { createAdaptiveMcpServer, DEFAULT_MODEL } from "./mcp";
 
 // ─── Env binding ─────────────────────────────────────────────────────────────
@@ -178,7 +184,7 @@ function unauthorizedResponse(cors: Record<string, string>, requestId: string): 
 // ─── Worker entry point ────────────────────────────────────────────────────────
 
 export default {
-  async fetch(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const requestId = crypto.randomUUID();
     const cors = buildCorsHeaders(request, env.ALLOWED_ORIGINS ?? "");
     const url = new URL(request.url);
@@ -206,23 +212,36 @@ export default {
         }
       }
 
-      // One handler per request is the documented stateless lifecycle (we use
-      // no MCP notifications or listen streams, which are the only features
-      // that need a module-scope handler).
+      // Keep the former adapter's Host/Origin defenses. The official SDK's
+      // HTTP handler deliberately leaves these checks to its caller.
+      const localHosts = localhostAllowedHostnames();
+      const workersDev = url.hostname.endsWith(".workers.dev");
+      const allowedHosts = localHosts.includes(url.hostname)
+        ? localHosts
+        : workersDev ? [url.hostname] : undefined;
+      const hostRejection = allowedHosts
+        ? hostHeaderValidationResponse(request, allowedHosts)
+        : undefined;
+      if (hostRejection) return hostRejection;
+      const allowedOrigins = localhostAllowedOrigins();
+      if (workersDev) allowedOrigins.push(url.hostname);
+      const originRejection = originValidationResponse(request, allowedOrigins);
+      if (originRejection) return originRejection;
+
+      // The narrow official SDK supports both modern requests and stateless
+      // legacy Streamable HTTP. No Agents platform, sessions, or DO are needed.
+      // No browser CORS headers are added to MCP responses.
       const handler = createMcpHandler(() => createAdaptiveMcpServer(env), {
-        route: "/mcp",
-        // Browser CORS headers are omitted entirely — MCP clients are
-        // non-browser; this matches the API's deny-by-default posture. The
-        // handler still validates any Origin that is present.
-        corsOptions: false,
         onerror: (error) => console.error("[mcp] handler_error", requestId, String(error)),
       });
-      // Tests invoke `worker.fetch(request, env)` without a runtime context;
-      // the handler only uses `waitUntil`, so a no-op shim is safe there. The
-      // real Workers runtime always supplies `ctx`.
-      const executionCtx =
-        ctx ?? ({ waitUntil() {}, passThroughOnException() {} } as unknown as ExecutionContext);
-      return handler(request, env, executionCtx);
+      try {
+        return await handler.fetch(request);
+      } catch (error) {
+        console.error("[mcp] handler_error", requestId, String(error));
+        return new Response(JSON.stringify({
+          jsonrpc: "2.0", id: null, error: { code: -32603, message: "Internal error" },
+        }), { status: 500, headers: { "Content-Type": "application/json", ...SECURITY_HEADERS } });
+      }
     }
 
     // Pre-flight

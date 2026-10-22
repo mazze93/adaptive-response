@@ -1,0 +1,29 @@
+
+> adaptive-response@ test /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022
+> pnpm -r --filter './packages/**' --filter @adaptive-response/api test
+
+Scope: 5 of 7 workspace projects
+packages/schema test$ vitest run
+packages/schema test:  RUN  v5.0.5 /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/packages/schema
+packages/schema test:  Test Files  1 passed (1)
+packages/schema test:       Tests  26 passed (26)
+packages/schema test:    Start at  17:15:51
+packages/schema test:    Duration  127ms (import 54%, transform 33%, tests 10%, worker 3%)
+packages/schema test: Done
+packages/core test$ vitest run
+packages/core test:  RUN  v5.0.5 /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/packages/core
+packages/core test:  Test Files  1 passed (1)
+packages/core test:       Tests  24 passed (24)
+packages/core test:    Start at  17:15:52
+packages/core test:    Duration  127ms (import 36%, transform 31%, tests 30%, worker 3%)
+packages/core test: Done
+apps/api test$ vitest run
+apps/api test: (!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+apps/api test:   - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+apps/api test: Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+apps/api test:  RUN  v5.0.5 /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/apps/api
+apps/api test:  Test Files  2 passed (2)
+apps/api test:       Tests  43 passed (43)
+apps/api test:    Start at  17:15:52
+apps/api test:    Duration  695ms (tests 76%, import 13%, transform 10%)
+apps/api test: Done

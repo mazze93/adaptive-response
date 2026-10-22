@@ -1,0 +1,2 @@
+Current main frozen install failed: ERR_PNPM_LOCKFILE_CONFIG_MISMATCH. Root pnpm.overrides differs from committed lockfile.
+For baseline behavior only, temporarily removed the unmatched pnpm policy, installed the exact committed lockfile with scripts disabled, then restored package.json.

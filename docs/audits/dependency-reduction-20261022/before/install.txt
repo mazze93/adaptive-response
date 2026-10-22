@@ -1,0 +1,34 @@
+Scope: all 7 workspace projects
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +271
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+   ╭───────────────────────────────────────────────────────────────────╮
+   │                                                                   │
+   │                Update available! 9.15.9 → 12.15.0.                │
+   │   Changelog: https://github.com/pnpm/pnpm/releases/tag/v12.15.0   │
+   │                 Run "pnpm add -g pnpm" to update.                 │
+   │                                                                   │
+   ╰───────────────────────────────────────────────────────────────────╯
+
+Progress: resolved 271, reused 0, downloaded 85, added 84
+Progress: resolved 271, reused 0, downloaded 162, added 162
+Progress: resolved 271, reused 0, downloaded 197, added 199
+Progress: resolved 271, reused 0, downloaded 220, added 223
+Progress: resolved 271, reused 0, downloaded 255, added 258
+Progress: resolved 271, reused 0, downloaded 261, added 264
+Progress: resolved 271, reused 0, downloaded 263, added 266
+Progress: resolved 271, reused 0, downloaded 265, added 268
+Progress: resolved 271, reused 0, downloaded 266, added 269
+Progress: resolved 271, reused 0, downloaded 267, added 270
+Progress: resolved 271, reused 0, downloaded 268, added 270
+Progress: resolved 271, reused 0, downloaded 268, added 271, done
+
+devDependencies:
++ @biomejs/biome 2.5.15
++ typescript 7.0.2
+
+Done in 12s using pnpm v9.15.9
+npm notice run npx
+npm notice run 'pnpm' install --frozen-lockfile --ignore-scripts

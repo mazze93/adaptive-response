@@ -1,0 +1,12 @@
+{
+  "node": "24.21.0",
+  "pnpm": "9.15.9",
+  "build": {
+    "exit": 0
+  },
+  "test": {
+    "exit": 0,
+    "existing_tests_passed": 93
+  },
+  "note": "Intermediate measurement; further reduction follows."
+}

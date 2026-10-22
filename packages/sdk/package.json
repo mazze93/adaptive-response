@@ -23,14 +23,13 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --clean && tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@adaptive-response/schema": "workspace:*"
   },
   "devDependencies": {
-    "tsup": "^9.0.0",
     "typescript": "^7.0.2"
   }
 }
