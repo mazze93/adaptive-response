@@ -1,0 +1,17 @@
+
+> adaptive-response@ typecheck /private/var/folders/_b/cck3976d0_14dx_rt3mw2ckr0000gn/T/adaptive-response-clean-n1qd2w96
+> pnpm -r typecheck
+
+Scope: 6 of 7 workspace projects
+packages/schema typecheck$ tsc --noEmit
+packages/schema typecheck: Done
+packages/core typecheck$ tsc --noEmit
+packages/sdk typecheck$ tsc --noEmit
+packages/sdk typecheck: Done
+packages/core typecheck: Done
+apps/api typecheck$ tsc --noEmit
+packages/ui typecheck$ tsc --noEmit
+apps/api typecheck: Done
+packages/ui typecheck: Done
+apps/demo typecheck$ tsc --noEmit
+apps/demo typecheck: Done

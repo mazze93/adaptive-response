@@ -1,0 +1,30 @@
+npm notice run npx
+npm notice run 'pnpm' exec python3 scripts/test-package-artifacts.py
+Traceback (most recent call last):
+  File "/Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/scripts/test-package-artifacts.py", line 106, in <module>
+    print(run(["node", "smoke.mjs"], consumer).strip())
+          ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/scripts/test-package-artifacts.py", line 22, in run
+    raise RuntimeError(f"{args}\n{result.stdout}\n{result.stderr}")
+RuntimeError: ['node', 'smoke.mjs']
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+false !== true
+
+    at file:///private/var/folders/_b/cck3976d0_14dx_rt3mw2ckr0000gn/T/adaptive-response-pack-ays2jyuk/smoke.mjs:21:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.21.0
+

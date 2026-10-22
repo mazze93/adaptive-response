@@ -1,0 +1,5 @@
+
+> adaptive-response@ lint /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022
+> biome check .
+
+Checked 42 files in 32ms. No fixes applied.

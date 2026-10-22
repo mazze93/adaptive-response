@@ -1,0 +1,12 @@
+Scope: all 7 workspace projects
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +120
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 120, reused 120, downloaded 0, added 120, done
+
+devDependencies:
++ @biomejs/biome 2.5.15
++ typescript 7.0.2
+
+Done in 663ms using pnpm v9.15.9

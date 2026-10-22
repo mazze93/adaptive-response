@@ -1,0 +1,56 @@
+{
+  "validation_source": "clean-checks.json",
+  "source_commit": "36a244d6491463d83f4f0a051906a991d9c9fb06",
+  "checks": [
+    {
+      "check": "install",
+      "exit": 0,
+      "fresh_installed_packages": 120
+    },
+    {
+      "check": "build",
+      "exit": 0
+    },
+    {
+      "check": "typecheck",
+      "exit": 0
+    },
+    {
+      "check": "test",
+      "exit": 0
+    },
+    {
+      "check": "dependency-regressions",
+      "exit": 0
+    },
+    {
+      "check": "esbuild-check",
+      "exit": 0
+    },
+    {
+      "check": "audit",
+      "exit": 0
+    },
+    {
+      "check": "demo-build",
+      "exit": 0
+    },
+    {
+      "check": "worker-dry-run",
+      "exit": 0
+    },
+    {
+      "check": "packed-artifacts",
+      "exit": 0
+    },
+    {
+      "check": "full-lint",
+      "exit": 0,
+      "evidence": "lint.txt"
+    }
+  ],
+  "additional_compatibility": {
+    "packed-consumer-node-20.20.2": "passed",
+    "packed-consumer-node-24.21.0": "passed"
+  }
+}

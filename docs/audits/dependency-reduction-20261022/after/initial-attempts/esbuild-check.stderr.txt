@@ -1,0 +1,2 @@
+npm notice run npx
+npm notice run 'pnpm' exec python3 scripts/check-esbuild.py

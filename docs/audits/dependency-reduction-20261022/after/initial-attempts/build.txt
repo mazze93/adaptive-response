@@ -1,0 +1,13 @@
+
+> adaptive-response@ build /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022
+> pnpm -r --filter './packages/**' build
+
+Scope: 4 of 7 workspace projects
+packages/schema build$ tsc -p tsconfig.build.json
+packages/schema build: Done
+packages/core build$ tsc -p tsconfig.build.json
+packages/sdk build$ tsc -p tsconfig.build.json
+packages/sdk build: Done
+packages/core build: Done
+packages/ui build$ tsc -p tsconfig.build.json
+packages/ui build: Done

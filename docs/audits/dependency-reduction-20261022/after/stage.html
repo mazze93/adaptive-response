@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<title>Theatre of Dependencies</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='44' fill='none' stroke='%23cda24e' stroke-width='3'/%3E%3Cpath d='M50 14 A66 66 0 0 1 50 86 A66 66 0 0 1 50 14Z' fill='none' stroke='%23cda24e' stroke-width='3'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%23cda24e'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Mono:wght@400;500&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   THEATRE OF DEPENDENCIES — the stage
+   obsidian ground · gold is flux and, once sealed, the kintsugi seam ·
+   teal is a closed wound · coral marks only what nothing can fix.
+   ══════════════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#0b0e15; --ink-raise:#121723; --ink-2:#0e131c;
+  --gold:#cda24e; --gold-bright:#e6c478; --gold-deep:#8a6f33;
+  --teal:#5CCFCF; --coral:#F07178;
+  --paper:#ece7da; --paper-soft:#c4bdab; --muted:#a39c84;
+  --hair:rgba(205,162,78,.18); --hair-soft:rgba(196,189,171,.12);
+  --serif:"Cormorant Garamond",Georgia,"Times New Roman",serif;
+  --mono:"DM Mono",ui-monospace,Menlo,monospace;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --bill:clamp(300px,27vw,400px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--ink);color:var(--paper);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow:hidden}
+body{display:grid;grid-template-columns:minmax(0,1fr) var(--bill);grid-template-rows:1fr auto}
+
+/* ── the stage ──────────────────────────────────────────────────────── */
+#stage{position:relative;grid-row:1;grid-column:1;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 45%,rgba(0,0,0,.55) 100%)}
+
+.mast{position:absolute;top:clamp(16px,3vh,32px);left:clamp(16px,2.6vw,40px);pointer-events:none;max-width:52%}
+.mast .eyebrow{font-family:var(--mono);font-size:.66rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);display:flex;gap:.8rem;align-items:center}
+.mast .eyebrow::before{content:"";width:24px;height:1px;background:var(--gold)}
+.mast h1{font-family:var(--serif);font-weight:600;font-size:clamp(1.9rem,3.6vw,3.3rem);line-height:.95;margin-top:.7rem;letter-spacing:-.01em}
+.mast h1 em{color:var(--gold);font-weight:500}
+.mast .sub{font-family:var(--mono);font-size:.74rem;color:var(--muted);margin-top:.8rem}
+.mast .sub b{color:var(--paper-soft);font-weight:400}
+
+.meters{position:absolute;top:clamp(16px,3vh,32px);right:clamp(16px,2vw,32px);text-align:right;pointer-events:none}
+.meter-k{font-family:var(--mono);font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-deep)}
+.meter-v{font-family:var(--mono);font-size:.86rem;color:var(--paper-soft);margin:.15rem 0 .7rem}
+.big{font-family:var(--serif);font-weight:600;font-size:clamp(3rem,6vw,5.4rem);line-height:.85;color:var(--gold-bright);font-variant-numeric:lining-nums tabular-nums}
+.big small{font-size:.42em;color:var(--gold);margin-left:.08em}
+.badge{display:inline-flex;gap:.5rem;align-items:center;margin-top:.7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;
+  padding:.38rem .75rem;border-radius:6px;border:1px solid var(--hair-soft);transition:color .5s,border-color .5s}
+.badge.open{color:var(--coral);border-color:rgba(240,113,120,.4)}
+.badge.half{color:var(--teal);border-color:rgba(92,207,207,.4)}
+.badge.closed{color:var(--gold-bright);border-color:rgba(205,162,78,.5)}
+
+/* surtitles — the opera convention: the plot, projected above the action */
+.surtitle{position:absolute;left:50%;bottom:clamp(18px,4vh,40px);transform:translateX(-50%);width:min(760px,88%);
+  text-align:center;pointer-events:none}
+.surtitle .act{font-family:var(--mono);font-size:.64rem;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);min-height:1em}
+.surtitle .line{font-family:var(--serif);font-style:italic;font-weight:500;font-size:clamp(1.15rem,2vw,1.6rem);line-height:1.3;color:var(--paper);
+  margin-top:.35rem;text-shadow:0 2px 18px rgba(0,0,0,.9);min-height:2.6em;transition:opacity .45s}
+.surtitle .line.fade{opacity:0}
+
+.tip{position:absolute;pointer-events:none;background:rgba(14,19,28,.94);border:1px solid var(--hair);border-radius:8px;
+  padding:.55rem .7rem;font-family:var(--mono);font-size:.72rem;color:var(--paper-soft);max-width:300px;display:none;z-index:5;line-height:1.5}
+.tip b{color:var(--paper);font-weight:500}
+.tip .sev{color:var(--coral)}
+
+/* ── the playbill ───────────────────────────────────────────────────── */
+#bill{grid-row:1;grid-column:2;border-left:1px solid var(--hair);background:linear-gradient(180deg,var(--ink-raise),var(--ink-2));
+  overflow-y:auto;padding:clamp(18px,3vh,30px) clamp(16px,1.6vw,26px) 28px;position:relative}
+#bill::before{content:"";position:absolute;left:-1px;top:0;bottom:0;width:1px;
+  background:repeating-linear-gradient(180deg,var(--gold-deep) 0 6px,transparent 6px 12px);opacity:.6}
+.bill-k{font-family:var(--mono);font-size:.62rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);display:flex;justify-content:space-between}
+.bill-k span:last-child{color:var(--gold-deep)}
+.bill-h{font-family:var(--serif);font-weight:600;font-size:1.65rem;line-height:1.05;margin:.5rem 0 .2rem}
+.bill-h em{color:var(--gold);font-weight:500}
+.bill-p{font-size:.86rem;color:var(--muted);line-height:1.55}
+.cast{display:grid;grid-template-columns:auto 1fr;gap:.25rem .9rem;margin:1.1rem 0 1.4rem;font-family:var(--mono);font-size:.74rem}
+.cast dt{color:var(--gold-deep);text-transform:uppercase;letter-spacing:.14em;font-size:.6rem;padding-top:.2rem}
+.cast dd{color:var(--paper-soft);overflow-wrap:anywhere;min-width:0}
+.sevs{display:flex;gap:.7rem;flex-wrap:wrap}
+.sevs i{font-style:normal;display:inline-flex;align-items:center;gap:.3rem}
+.sevs i::before{content:"";width:7px;height:7px;border-radius:2px;background:currentColor}
+.sev-CRITICAL{color:var(--coral)} .sev-HIGH{color:var(--gold-bright)} .sev-MODERATE{color:var(--gold)} .sev-LOW,.sev-UNKNOWN{color:var(--muted)}
+
+.acts{border-top:1px solid var(--hair-soft)}
+.act{padding:.85rem 0;border-bottom:1px solid var(--hair-soft);opacity:.18;transition:opacity .6s,transform .6s;transform:translateX(6px)}
+.act.on{opacity:1;transform:none}
+.act.now .act-name{color:var(--gold-bright)}
+.act-row{display:grid;grid-template-columns:2.6rem 1fr auto;align-items:baseline;gap:.4rem}
+.act-n{font-family:var(--serif);font-style:italic;font-weight:600;font-size:1.25rem;color:var(--gold)}
+.act-name{font-family:var(--mono);font-size:.84rem;color:var(--paper);transition:color .4s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act-name small{color:var(--muted);font-size:.72rem;margin-left:.35rem}
+.act-cov{font-family:var(--mono);font-size:.74rem;color:var(--gold-bright)}
+.act-bar{grid-column:2/4;height:2px;background:var(--hair-soft);margin:.45rem 0 .35rem;position:relative;overflow:hidden;border-radius:2px}
+.act-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright));width:0;transition:width .9s cubic-bezier(.16,1,.3,1)}
+.act-items{grid-column:2/4;font-family:var(--mono);font-size:.68rem;color:var(--muted);line-height:1.65}
+.act-items b{color:var(--paper-soft);font-weight:400}
+.act-items .to{color:var(--teal)}
+.act-items .nofix{color:var(--coral)}
+.act-items .shared{color:var(--coral);opacity:.85}
+
+.break{margin-top:1.3rem;padding:.9rem 1rem;border:1px solid rgba(240,113,120,.3);border-left:2px solid var(--coral);border-radius:0 8px 8px 0;
+  opacity:.15;transition:opacity .8s}
+.break.on{opacity:1}
+.break h3{font-family:var(--serif);font-weight:600;font-style:italic;font-size:1.15rem;color:var(--coral)}
+.break p{font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:.35rem;line-height:1.6}
+.break p b{color:var(--paper-soft);font-weight:400}
+
+.script{margin-top:1.3rem;opacity:.15;transition:opacity .8s}
+.script.on{opacity:1}
+.script-head{display:flex;justify-content:space-between;align-items:center}
+.script h3{font-family:var(--serif);font-weight:600;font-size:1.15rem}
+.script h3 em{color:var(--gold)}
+.copy{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;color:var(--ink);background:var(--gold);border:0;border-radius:6px;padding:.35rem .7rem;cursor:pointer}
+.copy:hover{background:var(--gold-bright)}
+.copy:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+pre{margin-top:.6rem;font-family:var(--mono);font-size:.66rem;line-height:1.55;color:var(--paper-soft);background:rgba(0,0,0,.35);
+  border:1px solid var(--hair-soft);border-radius:8px;padding:.75rem .8rem;overflow-x:auto;max-height:260px}
+.script .warn{font-family:var(--mono);font-size:.64rem;color:var(--muted);margin-top:.5rem;line-height:1.55}
+.script .warn b{color:var(--coral);font-weight:400}
+.colophon{margin-top:1.6rem;font-family:var(--mono);font-size:.6rem;color:var(--gold-deep);letter-spacing:.06em;line-height:1.7}
+
+/* ── the scrubber ───────────────────────────────────────────────────── */
+#deck{grid-row:2;grid-column:1/3;display:flex;align-items:center;gap:1rem;padding:.6rem clamp(16px,2vw,28px);
+  border-top:1px solid var(--hair);background:var(--ink-2)}
+.play{width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer;flex:none;
+  display:grid;place-items:center;font-size:.8rem}
+.play:hover{background:rgba(205,162,78,.12)}
+.play:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.track{position:relative;flex:1;height:34px;display:flex;align-items:center}
+.track input{width:100%;appearance:none;-webkit-appearance:none;background:transparent;height:34px;cursor:pointer;position:relative;z-index:2}
+.track input::-webkit-slider-runnable-track{height:2px;background:var(--hair)}
+.track input::-moz-range-track{height:2px;background:var(--hair)}
+.track input::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--gold-bright);margin-top:-5.5px;box-shadow:0 0 12px rgba(230,196,120,.7)}
+.track input::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--gold-bright);border:0}
+.track input:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.ticks{position:absolute;inset:0;pointer-events:none}
+.ticks span{position:absolute;top:4px;font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);transform:translateX(-50%);white-space:nowrap}
+.ticks span::after{content:"";position:absolute;left:50%;top:15px;width:1px;height:8px;background:var(--gold-deep)}
+.keys{font-family:var(--mono);font-size:.62rem;color:var(--gold-deep);white-space:nowrap}
+.keys kbd{font-family:inherit;color:var(--muted);border:1px solid var(--hair-soft);border-radius:4px;padding:0 .3rem;margin:0 .15rem}
+
+body.clean #bill,body.clean #deck,body.clean .meters .meter-k,body.clean .meters .meter-v{display:none}
+body.clean{grid-template-columns:1fr}
+
+@media (max-width:860px){
+  html,body{overflow:auto}
+  body{grid-template-columns:minmax(0,1fr);grid-template-rows:72vh auto auto}
+  #stage{grid-row:1}
+  #deck{grid-row:2;grid-column:1}
+  #bill{grid-row:3;grid-column:1;border-left:0;border-top:1px solid var(--hair);overflow:visible}
+  .keys{display:none}
+  .mast{max-width:58%}
+  .meters{max-width:40%}
+  .big{font-size:2.6rem}
+  .badge{font-size:.62rem;padding:.3rem .5rem}
+  .surtitle{width:92%}
+  .ticks span{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .act,.act-bar i,.break,.script,.surtitle .line,.badge{transition:none}
+}
+</style>
+</head>
+<body>
+<main id="stage" aria-label="Animated dependency network">
+  <canvas id="c" role="img" aria-label="A slime-mold network solver running over your dependency graph: tubes that carry vulnerable code to your project thicken; the rest starve; the ritual then seals each entrance in gold."></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+  <header class="mast">
+    <div class="eyebrow">Theatre of Dependencies</div>
+    <h1>A slime mold reads <em id="m-project"></em></h1>
+    <div class="sub" id="m-sub"></div>
+  </header>
+  <div class="meters" aria-live="polite">
+    <div class="meter-k">step</div><div class="meter-v" id="m-step">—</div>
+    <div class="meter-k">terrain alive</div><div class="meter-v" id="m-alive">—</div>
+    <div class="meter-k">surface closed</div>
+    <div class="big" id="m-cov">0<small>%</small></div>
+    <div><span class="badge open" id="m-state">○ OPEN · fragmented</span></div>
+  </div>
+  <div class="surtitle" aria-live="polite"><div class="act" id="s-act"></div><div class="line" id="s-line"></div></div>
+  <div class="tip" id="tip"></div>
+</main>
+
+<aside id="bill" aria-label="Playbill">
+  <div class="bill-k"><span>Tonight's programme</span><span id="b-date"></span></div>
+  <h2 class="bill-h">The Upgrade <em>Ritual</em></h2>
+  <p class="bill-p">Vulnerable packages are food. Your project is the heart. The organism lays tubes between them, keeps the ones that carry current, and lets the rest starve. The entrances it keeps are where you act.</p>
+  <dl class="cast" id="b-cast"></dl>
+  <div class="acts" id="b-acts"></div>
+  <div class="break" id="b-break"><h3>The break is kept</h3><p id="b-break-p"></p></div>
+  <div class="script" id="b-script">
+    <div class="script-head"><h3>The <em>script</em></h3><button class="copy" id="copy" type="button">copy</button></div>
+    <pre id="b-json"></pre>
+    <p class="warn" id="b-warn"></p>
+  </div>
+  <p class="colophon" id="b-colophon"></p>
+</aside>
+
+<nav id="deck" aria-label="Playback">
+  <button class="play" id="play" type="button" aria-label="Pause">❚❚</button>
+  <div class="track"><div class="ticks" id="ticks" aria-hidden="true"></div><input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Timeline"></div>
+  <div class="keys"><kbd>space</kbd>play <kbd>←</kbd><kbd>→</kbd>scrub <kbd>R</kbd>replay <kbd>H</kbd>clean</div>
+</nav>
+
+<script type="application/json" id="stage-data">{"meta":{"file":"docs/audits/dependency-reduction-20261022/after/sbom.json","date":"2026-10-22","version":"0.2.0"},"project":"adaptive-response","nodes":[["adaptive-response","",0,1],["@babel/code-frame","8.0.0",1,1],["@babel/compat-data","8.0.5",1,1],["@babel/core","8.0.5",1,1],["@babel/generator","8.0.5",1,1],["@babel/helper-compilation-targets","8.0.5",1,1],["@babel/helper-globals","8.0.0",1,1],["@babel/helper-string-parser","8.0.0",1,1],["@babel/helper-validator-identifier","8.0.4",1,1],["@babel/helper-validator-option","8.0.0",1,1],["@babel/helpers","8.0.5",1,1],["@babel/parser","8.0.5",1,1],["@babel/runtime","7.29.7",1,1],["@babel/template","8.0.0",1,1],["@babel/traverse","8.0.5",1,1],["@babel/types","8.0.5",1,1],["@biomejs/biome","2.5.15",1,1],["@biomejs/cli-darwin-arm64","2.5.15",1,1],["@biomejs/cli-darwin-x64","2.5.15",1,1],["@biomejs/cli-linux-arm64-musl","2.5.15",1,1],["@biomejs/cli-linux-arm64","2.5.15",1,1],["@biomejs/cli-linux-x64-musl","2.5.15",1,1],["@biomejs/cli-linux-x64","2.5.15",1,1],["@biomejs/cli-win32-arm64","2.5.15",1,1],["@biomejs/cli-win32-x64","2.5.15",1,1],["@cloudflare/kv-asset-handler","0.5.0",1,1],["@cloudflare/unenv-preset","2.16.2",1,1],["@cloudflare/workerd-darwin-64","1.20261012.1",1,1],["@cloudflare/workerd-darwin-arm64","1.20261012.1",1,1],["@cloudflare/workerd-linux-64","1.20261012.1",1,1],["@cloudflare/workerd-linux-arm64","1.20261012.1",1,1],["@cloudflare/workerd-windows-64","1.20261012.1",1,1],["@cloudflare/workers-types","5.20261018.1",1,1],["@cspotcode/source-map-support","0.8.1",1,1],["@emnapi/runtime","1.11.3",1,1],["@esbuild/aix-ppc64","0.28.2",1,1],["@esbuild/android-arm64","0.28.2",1,1],["@esbuild/android-arm","0.28.2",1,1],["@esbuild/android-x64","0.28.2",1,1],["@esbuild/darwin-arm64","0.28.2",1,1],["@esbuild/darwin-x64","0.28.2",1,1],["@esbuild/freebsd-arm64","0.28.2",1,1],["@esbuild/freebsd-x64","0.28.2",1,1],["@esbuild/linux-arm64","0.28.2",1,1],["@esbuild/linux-arm","0.28.2",1,1],["@esbuild/linux-ia32","0.28.2",1,1],["@esbuild/linux-loong64","0.28.2",1,1],["@esbuild/linux-mips64el","0.28.2",1,1],["@esbuild/linux-ppc64","0.28.2",1,1],["@esbuild/linux-riscv64","0.28.2",1,1],["@esbuild/linux-s390x","0.28.2",1,1],["@esbuild/linux-x64","0.28.2",1,1],["@esbuild/netbsd-arm64","0.28.2",1,1],["@esbuild/netbsd-x64","0.28.2",1,1],["@esbuild/openbsd-arm64","0.28.2",1,1],["@esbuild/openbsd-x64","0.28.2",1,1],["@esbuild/openharmony-arm64","0.28.2",1,1],["@esbuild/sunos-x64","0.28.2",1,1],["@esbuild/win32-arm64","0.28.2",1,1],["@esbuild/win32-ia32","0.28.2",1,1],["@esbuild/win32-x64","0.28.2",1,1],["@img/colour","1.1.0",1,1],["@img/sharp-darwin-arm64","0.35.5",1,1],["@img/sharp-darwin-x64","0.35.5",1,1],["@img/sharp-freebsd-wasm32","0.35.5",1,1],["@img/sharp-libvips-darwin-arm64","1.3.4",1,1],["@img/sharp-libvips-darwin-x64","1.3.4",1,1],["@img/sharp-libvips-linux-arm64","1.3.4",1,1],["@img/sharp-libvips-linux-arm","1.3.4",1,1],["@img/sharp-libvips-linux-ppc64","1.3.4",1,1],["@img/sharp-libvips-linux-riscv64","1.3.4",1,1],["@img/sharp-libvips-linux-s390x","1.3.4",1,1],["@img/sharp-libvips-linux-x64","1.3.4",1,1],["@img/sharp-libvips-linuxmusl-arm64","1.3.4",1,1],["@img/sharp-libvips-linuxmusl-x64","1.3.4",1,1],["@img/sharp-linux-arm64","0.35.5",1,1],["@img/sharp-linux-arm","0.35.5",1,1],["@img/sharp-linux-ppc64","0.35.5",1,1],["@img/sharp-linux-riscv64","0.35.5",1,1],["@img/sharp-linux-s390x","0.35.5",1,1],["@img/sharp-linux-x64","0.35.5",1,1],["@img/sharp-linuxmusl-arm64","0.35.5",1,1],["@img/sharp-linuxmusl-x64","0.35.5",1,1],["@img/sharp-wasm32","0.35.5",1,1],["@img/sharp-webcontainers-wasm32","0.35.5",1,1],["@img/sharp-win32-arm64","0.35.5",1,1],["@img/sharp-win32-ia32","0.35.5",1,1],["@img/sharp-win32-x64","0.35.5",1,1],["@jridgewell/gen-mapping","0.4.0-beta.0",1,1],["@jridgewell/resolve-uri","3.1.2",1,1],["@jridgewell/sourcemap-codec","1.6.0",1,1],["@jridgewell/trace-mapping","0.3.31",1,1],["@jridgewell/trace-mapping","0.3.9",1,1],["@modelcontextprotocol/core","2.3.1",0,1],["@modelcontextprotocol/server","2.3.1",0,1],["@oxc-project/types","0.154.0",1,1],["@poppinss/colors","4.1.6",1,1],["@poppinss/dumper","0.6.5",1,1],["@poppinss/exception","1.2.3",1,1],["@rolldown/binding-android-arm-eabi","1.2.14",1,1],["@rolldown/binding-android-arm64","1.2.14",1,1],["@rolldown/binding-darwin-arm64","1.2.14",1,1],["@rolldown/binding-darwin-x64","1.2.14",1,1],["@rolldown/binding-freebsd-x64","1.2.14",1,1],["@rolldown/binding-linux-arm-gnueabihf","1.2.14",1,1],["@rolldown/binding-linux-arm64-gnu","1.2.14",1,1],["@rolldown/binding-linux-arm64-musl","1.2.14",1,1],["@rolldown/binding-linux-ppc64-gnu","1.2.14",1,1],["@rolldown/binding-linux-s390x-gnu","1.2.14",1,1],["@rolldown/binding-linux-x64-gnu","1.2.14",1,1],["@rolldown/binding-linux-x64-musl","1.2.14",1,1],["@rolldown/binding-openharmony-arm64","1.2.14",1,1],["@rolldown/binding-win32-arm64-msvc","1.2.14",1,1],["@rolldown/binding-win32-x64-msvc","1.2.14",1,1],["@rolldown/plugin-babel","0.2.4",1,1],["@rolldown/pluginutils","1.0.1",1,1],["@sindresorhus/is","7.2.0",1,1],["@speed-highlight/core","1.2.15",1,1],["@types/chai","5.2.3",1,1],["@types/deep-eql","4.0.2",1,1],["@types/estree","1.0.9",1,1],["@types/gensync","1.0.5",1,1],["@types/jsesc","2.5.1",1,1],["@types/react-dom","19.3.0",1,1],["@types/react","19.3.0",1,1],["@typescript/typescript-aix-ppc64","7.0.2",1,1],["@typescript/typescript-darwin-arm64","7.0.2",1,1],["@typescript/typescript-darwin-x64","7.0.2",1,1],["@typescript/typescript-freebsd-arm64","7.0.2",1,1],["@typescript/typescript-freebsd-x64","7.0.2",1,1],["@typescript/typescript-linux-arm64","7.0.2",1,1],["@typescript/typescript-linux-arm","7.0.2",1,1],["@typescript/typescript-linux-loong64","7.0.2",1,1],["@typescript/typescript-linux-mips64el","7.0.2",1,1],["@typescript/typescript-linux-ppc64","7.0.2",1,1],["@typescript/typescript-linux-riscv64","7.0.2",1,1],["@typescript/typescript-linux-s390x","7.0.2",1,1],["@typescript/typescript-linux-x64","7.0.2",1,1],["@typescript/typescript-netbsd-arm64","7.0.2",1,1],["@typescript/typescript-netbsd-x64","7.0.2",1,1],["@typescript/typescript-openbsd-arm64","7.0.2",1,1],["@typescript/typescript-openbsd-x64","7.0.2",1,1],["@typescript/typescript-sunos-x64","7.0.2",1,1],["@typescript/typescript-win32-arm64","7.0.2",1,1],["@typescript/typescript-win32-x64","7.0.2",1,1],["@vitejs/plugin-react","6.1.2",1,1],["@vitest/mocker","5.0.5",1,1],["@vitest/spy","5.0.5",1,1],["assertion-error","2.0.1",1,1],["baseline-browser-mapping","2.11.23",1,1],["blake3-wasm","2.1.5",1,1],["browserslist","4.28.9",1,1],["caniuse-lite","1.0.30001810",1,1],["chai","6.3.0",1,1],["convert-source-map","2.0.0",1,1],["cookie","1.1.1",1,1],["csstype","3.2.3",1,1],["detect-libc","2.1.2",1,1],["electron-to-chromium","1.5.428",1,1],["empathic","2.0.1",1,1],["error-stack-parser-es","1.0.5",1,1],["es-module-lexer","2.3.2",1,1],["esbuild","0.28.2",1,1],["escalade","3.2.0",1,1],["estree-walker","3.0.3",1,1],["expect-type","1.4.0",1,1],["fdir","6.5.0",1,1],["fsevents","2.3.3",1,1],["gensync","1.0.0-beta.2",1,1],["import-meta-resolve","4.2.0",1,1],["js-tokens","10.0.0",1,1],["jsesc","3.1.0",1,1],["json5","2.2.3",1,1],["kleur","4.1.5",1,1],["lightningcss-android-arm64","1.33.0",1,1],["lightningcss-darwin-arm64","1.33.0",1,1],["lightningcss-darwin-x64","1.33.0",1,1],["lightningcss-freebsd-x64","1.33.0",1,1],["lightningcss-linux-arm-gnueabihf","1.33.0",1,1],["lightningcss-linux-arm64-gnu","1.33.0",1,1],["lightningcss-linux-arm64-musl","1.33.0",1,1],["lightningcss-linux-x64-gnu","1.33.0",1,1],["lightningcss-linux-x64-musl","1.33.0",1,1],["lightningcss-win32-arm64-msvc","1.33.0",1,1],["lightningcss-win32-x64-msvc","1.33.0",1,1],["lightningcss","1.33.0",1,1],["lru-cache","11.5.2",1,1],["magic-string","1.4.3",1,1],["miniflare","5.20261012.1-beta",1,1],["nanoid","3.3.20",1,1],["node-releases","2.0.55",1,1],["obug","2.2.1",1,1],["obug","3.0.0",1,1],["path-to-regexp","6.3.0",1,1],["pathe","2.0.3",1,1],["picocolors","1.1.1",1,1],["picomatch","4.0.7",1,1],["postcss","8.5.30",1,1],["react-dom","19.3.1",0,1],["react","19.3.1",0,1],["rolldown","1.2.14",1,1],["scheduler","0.28.0",0,1],["semver","7.8.5",1,1],["sharp","0.35.5",1,1],["source-map-js","1.2.2",1,1],["std-env","4.3.0",1,1],["supports-color","10.2.2",1,1],["tinybench","6.2.2",1,1],["tinyexec","1.3.1",1,1],["tinyglobby","0.2.17",1,1],["tslib","2.8.1",1,1],["typescript","7.0.2",1,1],["undici","7.29.1",1,1],["unenv","2.0.0-rc.24",1,1],["update-browserslist-db","1.3.3",1,1],["verkit","0.3.2",1,1],["vite","8.3.4",1,1],["vitest","5.0.5",1,1],["why-is-node-running","3.2.1",1,1],["workerd","1.20261012.1",1,1],["wrangler","4.151.1",1,1],["ws","8.21.0",1,1],["yaml","2.9.1",1,1],["youch-core","0.3.3",1,1],["youch","4.1.0-beta.10",1,1],["zod","4.6.7",0,1]],"edges":[[0,16],[0,32],[0,94],[0,123],[0,124],[0,145],[0,198],[0,199],[0,211],[0,216],[0,217],[0,220],[0,225],[1,8],[1,170],[3,1],[3,4],[3,5],[3,10],[3,11],[3,13],[3,14],[3,15],[3,121],[3,154],[3,159],[3,168],[3,169],[3,172],[3,191],[3,215],[4,11],[4,15],[4,88],[4,91],[4,122],[4,171],[5,2],[5,9],[5,151],[5,186],[5,215],[10,13],[10,15],[11,15],[13,1],[13,11],[13,15],[14,1],[14,4],[14,6],[14,11],[14,13],[14,15],[14,191],[15,7],[15,8],[16,17],[16,18],[16,19],[16,20],[16,21],[16,22],[16,23],[16,24],[26,213],[26,219],[33,92],[34,210],[62,65],[63,66],[64,83],[75,67],[76,68],[77,69],[78,70],[79,71],[80,72],[81,73],[82,74],[83,34],[84,83],[88,90],[88,91],[91,89],[91,90],[92,89],[92,90],[93,225],[94,93],[94,225],[96,173],[97,96],[97,116],[97,206],[114,3],[114,12],[114,196],[114,200],[114,216],[118,119],[118,148],[123,124],[124,156],[145,114],[145,115],[145,216],[146,91],[146,147],[146,164],[146,187],[146,216],[151,149],[151,152],[151,158],[151,190],[151,214],[162,35],[162,36],[162,37],[162,38],[162,39],[162,40],[162,41],[162,42],[162,43],[162,44],[162,45],[162,46],[162,47],[162,48],[162,49],[162,50],[162,51],[162,52],[162,53],[162,54],[162,55],[162,56],[162,57],[162,58],[162,59],[162,60],[164,120],[166,196],[185,157],[185,174],[185,175],[185,176],[185,177],[185,178],[185,179],[185,180],[185,181],[185,182],[185,183],[185,184],[187,90],[188,33],[188,203],[188,212],[188,219],[188,221],[188,224],[197,189],[197,195],[197,204],[198,199],[198,201],[200,95],[200,99],[200,100],[200,101],[200,102],[200,103],[200,104],[200,105],[200,106],[200,107],[200,108],[200,109],[200,110],[200,111],[200,112],[200,113],[200,115],[203,61],[203,62],[203,63],[203,64],[203,65],[203,66],[203,67],[203,68],[203,69],[203,70],[203,71],[203,72],[203,73],[203,74],[203,75],[203,76],[203,77],[203,78],[203,79],[203,80],[203,81],[203,82],[203,84],[203,85],[203,86],[203,87],[203,157],[203,202],[209,166],[209,196],[211,125],[211,126],[211,127],[211,128],[211,129],[211,130],[211,131],[211,132],[211,133],[211,134],[211,135],[211,136],[211,137],[211,138],[211,139],[211,140],[211,141],[211,142],[211,143],[211,144],[213,194],[214,151],[214,163],[214,195],[216,162],[216,167],[216,185],[216,196],[216,197],[216,200],[216,209],[216,222],[217,118],[217,146],[217,153],[217,161],[217,165],[217,187],[217,192],[217,196],[217,205],[217,207],[217,208],[217,209],[217,216],[217,218],[219,27],[219,28],[219,29],[219,30],[219,31],[220,25],[220,26],[220,32],[220,150],[220,162],[220,167],[220,188],[220,193],[220,213],[220,219],[223,98],[223,160],[224,96],[224,97],[224,117],[224,155],[224,223]],"frames":"///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////o6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTUwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcGwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5b29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29lZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZVxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGPz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz86Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6OjU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhIR4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExEREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYG","frameCount":42,"steps":121,"converged":121,"gamma":1.8,"food":[],"acts":[],"sealedAt":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],"state":{"min":0.92,"key":"closed","label":"CLOSED","note":"healthy"},"coverage":1,"fixable":1,"unfixed":[],"script":{"dependencies":{},"overrides":{}},"majors":[]}</script>
+<!-- data-cfasync="false": when served behind Cloudflare, Rocket Loader would otherwise
+     rewrite this into a deferred script that its loader (blocked by the CSP above) never runs. -->
+<script data-cfasync="false">
+(() => {
+'use strict';
+const S = JSON.parse(document.getElementById('stage-data').textContent);
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── data ─────────────────────────────────────────────────────────── */
+const N = S.nodes.length, E = S.edges, M = E.length;
+const raw = Uint8Array.from(atob(S.frames), (ch) => ch.charCodeAt(0));
+const FC = S.frameCount;
+const Dat = (f, e) => { const b = raw[f * M + e] / 255; return b * b; };
+const foodOf = new Map(S.food.map((f, i) => [f.node, i]));
+const wmax = Math.max(1e-9, ...S.food.map((f) => f.w));
+
+/* ── layout: a radial rail map, project at the heart ─────────────── */
+const kids = Array.from({ length: N }, () => []), parents = Array.from({ length: N }, () => []);
+E.forEach(([a, b], i) => { kids[a].push([b, i]); parents[b].push([a, i]); });
+const depth = new Int32Array(N).fill(-1); depth[0] = 0;
+const order = [0];
+for (let q = 0; q < order.length; q++) for (const [b] of kids[order[q]]) if (depth[b] < 0) { depth[b] = depth[order[q]] + 1; order.push(b); }
+const maxDepth = Math.max(1, ...depth);
+const finalD = (e) => Dat(FC - 1, e);
+// Tree parent: the shallowest parent, preferring the tube the organism kept.
+const tparent = new Int32Array(N).fill(-1);
+for (let v = 1; v < N; v++) {
+  let best = -1, bestD = -1;
+  for (const [p, e] of parents[v]) if (depth[p] === depth[v] - 1 && finalD(e) > bestD) { best = p; bestD = finalD(e); }
+  tparent[v] = best;
+}
+const tkids = Array.from({ length: N }, () => []);
+for (let v = 1; v < N; v++) if (tparent[v] >= 0) tkids[tparent[v]].push(v);
+const leaves = new Float64Array(N);
+for (let i = order.length - 1; i >= 0; i--) {
+  const v = order[i];
+  leaves[v] = tkids[v].length ? tkids[v].reduce((s, k) => s + leaves[k], 0) : 1;
+  // food gets a little more room so its labels breathe
+  if (foodOf.has(v)) leaves[v] += 0.6;
+}
+const ang = new Float64Array(N);
+(function place(v, a0, a1) {
+  ang[v] = (a0 + a1) / 2;
+  // interleave large and small subtrees so heavy branches don't cluster
+  const ks = tkids[v].slice().sort((x, y) => leaves[y] - leaves[x]);
+  const arranged = []; ks.forEach((k, i) => (i % 2 ? arranged.push(k) : arranged.unshift(k)));
+  const wt = (k) => Math.pow(leaves[k], 0.55);
+  const tot = arranged.reduce((s, k) => s + wt(k), 0) || 1;
+  let a = a0;
+  for (const k of arranged) { const span = (a1 - a0) * wt(k) / tot; place(k, a, a + span); a += span; }
+})(0, -Math.PI / 2, Math.PI * 1.5);
+
+// deterministic organic jitter
+const hash = (i, s) => { let x = Math.imul(i + 1, 0x9e3779b1) ^ Math.imul(s + 3, 0x85ebca77); x ^= x >>> 15; x = Math.imul(x, 0x2c1b3c6d); x ^= x >>> 12; return ((x >>> 0) % 10000) / 10000; };
+
+let W = 0, H = 0, DPR = 1, cx = 0, cy = 0, R = 0;
+const px = new Float64Array(N), py = new Float64Array(N);
+const curve = new Array(M);
+const cv = $('c'), ctx = cv.getContext('2d');
+function layout() {
+  const r = cv.getBoundingClientRect();
+  W = r.width; H = r.height; DPR = Math.min(devicePixelRatio || 1, 2);
+  cv.width = Math.max(1, W * DPR); cv.height = Math.max(1, H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  cx = W * 0.5; cy = H * 0.53; R = Math.min(W * 0.44, H * 0.43);
+  const ring = (d) => R * (0.18 + 0.82 * Math.pow((d - 1) / Math.max(1, maxDepth - 1), 0.85));
+  for (let v = 0; v < N; v++) {
+    if (depth[v] < 0) { px[v] = -9999; py[v] = -9999; continue; }
+    const rr = v === 0 ? 0 : ring(depth[v]) + (hash(v, 1) - 0.5) * (R / maxDepth) * 0.5;
+    const aa = ang[v] + (hash(v, 2) - 0.5) * 0.03;
+    px[v] = cx + Math.cos(aa) * rr; py[v] = cy + Math.sin(aa) * rr;
+  }
+  for (let e = 0; e < M; e++) {
+    const [a, b] = E[e];
+    const ra = Math.hypot(px[a] - cx, py[a] - cy), rb = Math.hypot(px[b] - cx, py[b] - cy);
+    const aa = Math.atan2(py[a] - cy, px[a] - cx), ab = Math.atan2(py[b] - cy, px[b] - cx);
+    const rm = (ra + rb) / 2;
+    const c1 = a === 0 ? [cx + Math.cos(ab) * rb * 0.35, cy + Math.sin(ab) * rb * 0.35] : [cx + Math.cos(aa) * rm, cy + Math.sin(aa) * rm];
+    const c2 = [cx + Math.cos(ab) * rm, cy + Math.sin(ab) * rm];
+    curve[e] = [px[a], py[a], c1[0], c1[1], c2[0], c2[1], px[b], py[b]];
+  }
+  rings = Array.from({ length: maxDepth }, (_, i) => ring(i + 1));
+}
+let rings = [];
+const bez = (c, t) => { const u = 1 - t; return [u*u*u*c[0] + 3*u*u*t*c[2] + 3*u*t*t*c[4] + t*t*t*c[6], u*u*u*c[1] + 3*u*u*t*c[3] + 3*u*t*t*c[5] + t*t*t*c[7]]; };
+
+/* ── the score: when each thing happens ──────────────────────────── */
+const T_OVER = 2.2, T_GROW = 9.5, T_ACT = 2.4, T_CODA = 4.5;
+const nActs = S.acts.length;
+const tGrow0 = T_OVER, tRit0 = T_OVER + T_GROW, tCoda0 = tRit0 + nActs * T_ACT, TOTAL = tCoda0 + T_CODA;
+const ease = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+
+function sceneAt(t) {
+  const gp = clamp01((t - tGrow0) / T_GROW);
+  const pos = ease(gp) * (FC - 1);
+  const actF = (t - tRit0) / T_ACT;                 // fractional act index
+  const actsDone = t < tRit0 ? -1 : Math.min(nActs - 1, Math.floor(actF));
+  const actProg = t < tRit0 ? 0 : actF >= nActs ? 1 : actF - Math.floor(actF);
+  return { t, gp, pos, actsDone, actProg, coda: t >= tCoda0, over: clamp01(t / T_OVER) };
+}
+const Dnow = (sc, e) => {
+  if (sc.t < tGrow0) return 1;
+  const i0 = Math.floor(sc.pos), i1 = Math.min(FC - 1, i0 + 1), k = sc.pos - i0;
+  return Dat(i0, e) * (1 - k) + Dat(i1, e) * k;
+};
+// sealing progress of a tube: 0 = live vein, 1 = gold seam
+function sealOf(sc, e) {
+  const s = S.sealedAt[e];
+  if (s == null || s < 0 || sc.actsDone < 0) return 0;
+  if (s < sc.actsDone) return 1;
+  if (s > sc.actsDone) return 0;
+  // lacquer runs outward from the heart: shallow tubes first
+  const d = depth[E[e][0]] / maxDepth;
+  return clamp01((sc.actProg - 0.12 - d * 0.55) / 0.25);
+}
+const closedP = (sc, fi) => {
+  const c = S.food[fi].closedAt;
+  if (c == null || sc.actsDone < 0) return 0;
+  return c < sc.actsDone ? 1 : c > sc.actsDone ? 0 : clamp01((sc.actProg - 0.55) / 0.3);
+};
+
+/* ── particles: current flowing home ─────────────────────────────── */
+const parts = [];
+const BUDGET = reduce ? 0 : Math.min(900, 120 + M * 2);
+for (let i = 0; i < BUDGET; i++) parts.push({ e: (hash(i, 9) * M) | 0, t: hash(i, 11), v: 0.12 + hash(i, 12) * 0.25 });
+
+/* ── drawing ─────────────────────────────────────────────────────── */
+const GOLD = [205, 162, 78], BRIGHT = [230, 196, 120], TEAL = [92, 207, 207], CORAL = [240, 113, 120];
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const mix = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
+let hover = -1, lastT = performance.now();
+
+function draw(sc, dt) {
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = '#0b0e15'; ctx.fillRect(0, 0, W, H);
+  // agar: depth rings, labelled like a survey plate
+  ctx.lineWidth = 1;
+  rings.forEach((r, i) => {
+    ctx.strokeStyle = `rgba(205,162,78,${0.05 * sc.over})`;
+    ctx.setLineDash([2, 6]); ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.2832); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = `rgba(138,111,51,${0.5 * sc.over})`; ctx.font = '9px "DM Mono", monospace'; ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+    if (i === 0 || i === rings.length - 1 || i % 2 === 0) ctx.fillText(`depth ${i + 1}`, cx - r * 0.74 - 4, cy + r * 0.67 + 3);
+  });
+
+  // tubes
+  const grow = sc.t >= tGrow0;
+  for (let pass = 0; pass < 2; pass++) {
+    ctx.globalCompositeOperation = pass ? 'lighter' : 'source-over';
+    for (let e = 0; e < M; e++) {
+      const [a] = E[e]; if (depth[a] < 0) continue;
+      const d = Dnow(sc, e) * (grow ? 1 : sc.over);
+      const seal = sealOf(sc, e);
+      const ghost = 0.035 * sc.over;
+      let alpha = Math.max(ghost, Math.min(0.92, 0.05 + Math.sqrt(d) * 0.85));
+      if (!grow) alpha = 0.06 + 0.22 * sc.over;
+      if (alpha < 0.03 && seal === 0) continue;
+      let col = mix(GOLD, BRIGHT, Math.min(1, d * 1.4));
+      const unfixed = S.sealedAt[e] === null && sc.coda;
+      if (unfixed) col = mix(col, CORAL, 0.55);
+      let wdt = 0.35 + Math.sqrt(d) * 5.2;
+      if (seal > 0) { col = mix(col, BRIGHT, seal); wdt = wdt * (1 - seal) + (1.6 + Math.sqrt(d) * 1.4) * seal; alpha = alpha * (1 - seal) + 0.95 * seal; }
+      const c = curve[e];
+      if (pass === 0) {
+        ctx.strokeStyle = rgba(col, alpha); ctx.lineWidth = wdt;
+      } else {
+        if (d < 0.08 && seal === 0) continue;
+        ctx.strokeStyle = rgba(col, (seal > 0 ? 0.16 * seal + 0.06 : 0.07) * Math.min(1, d * 3 + seal));
+        ctx.lineWidth = wdt * 3.4 + seal * 4;
+      }
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(c[0], c[1]); ctx.bezierCurveTo(c[2], c[3], c[4], c[5], c[6], c[7]); ctx.stroke();
+    }
+  }
+
+  // current: particles drift from food toward the heart along live veins
+  if (grow && BUDGET) {
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of parts) {
+      let d = Dnow(sc, p.e), s = sealOf(sc, p.e);
+      if (d < 0.06 || s > 0.5) { p.e = (Math.random() * M) | 0; p.t = Math.random(); continue; }
+      p.t -= dt * p.v * (0.5 + d * 1.6);
+      if (p.t <= 0) {
+        // hop to a parent tube so the current keeps travelling home
+        const a = E[p.e][0]; const ups = parents[a];
+        if (a !== 0 && ups.length) { const pick = ups.reduce((m, x) => (Dnow(sc, x[1]) > Dnow(sc, m[1]) ? x : m)); p.e = pick[1]; p.t = 1; }
+        else { p.e = (Math.random() * M) | 0; p.t = 1; }
+        continue;
+      }
+      const [x, y] = bez(curve[p.e], p.t);
+      const unfixed = S.sealedAt[p.e] === null && sc.coda;
+      ctx.fillStyle = unfixed ? 'rgba(240,113,120,.9)' : 'rgba(240,214,150,.9)';
+      ctx.beginPath(); ctx.arc(x, y, 0.9 + d * 1.3, 0, 6.2832); ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // dust: every package, faint
+  ctx.fillStyle = `rgba(196,189,171,${0.22 * sc.over})`;
+  for (let v = 1; v < N; v++) if (depth[v] > 0 && !foodOf.has(v)) { ctx.fillRect(px[v] - 0.7, py[v] - 0.7, 1.4, 1.4); }
+
+  // food: vulnerable packages, pulsing until closed
+  const now = sc.t;
+  S.food.forEach((f, fi) => {
+    const v = f.node; if (depth[v] < 0) return;
+    const k = closedP(sc, fi), r = 2.6 + (f.w / wmax) * 5.5;
+    const pulse = reduce ? 0 : (Math.sin(now * 3.1 + fi * 1.7) + 1) / 2;
+    const appear = clamp01((sc.t - 0.3 - fi * 0.04) / 0.8);
+    if (appear <= 0) return;
+    const sev = f.fixed ? mix(CORAL, BRIGHT, 0.25) : CORAL;
+    const col = mix(sev, TEAL, k);
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(px[v], py[v], 0, px[v], py[v], r * (3.2 + pulse * (1 - k) * 1.6));
+    g.addColorStop(0, rgba(col, 0.45 * appear)); g.addColorStop(1, rgba(col, 0));
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px[v], py[v], r * 5, 0, 6.2832); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = rgba(col, appear); ctx.beginPath(); ctx.arc(px[v], py[v], r * (1 - k * 0.35), 0, 6.2832); ctx.fill();
+    if (k > 0) { ctx.strokeStyle = rgba(BRIGHT, k); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(px[v], py[v], r + 3, 0, 6.2832 * k); ctx.stroke(); }
+    if (!f.fixed && sc.coda) { ctx.strokeStyle = rgba(CORAL, 0.8); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px[v] - r - 3, py[v] - r - 3); ctx.lineTo(px[v] + r + 3, py[v] + r + 3); ctx.stroke(); }
+  });
+
+  // labels: the heaviest food during growth; the act entrances during the ritual
+  ctx.font = '10.5px "DM Mono", monospace'; ctx.textBaseline = 'middle';
+  const placed = [];
+  const hit = (r) => placed.some((q) => r[0] < q[0] + q[2] && q[0] < r[0] + r[2] && r[1] < q[1] + q[3] && q[1] < r[1] + r[3]);
+  const label = (v, text, col, alpha) => {
+    const a = Math.atan2(py[v] - cy, px[v] - cx), right = Math.cos(a) >= 0;
+    const tw = ctx.measureText(text).width, x = px[v] + (right ? 10 : -10);
+    let y = py[v], rect = null;
+    for (const dy of [0, 14, -14, 28, -28, 42, -42]) {
+      const r = [right ? x - 3 : x - tw - 3, py[v] + dy - 8, tw + 6, 16];
+      if (!hit(r)) { rect = r; y = py[v] + dy; break; }
+    }
+    if (!rect) return;
+    placed.push(rect);
+    ctx.textAlign = right ? 'left' : 'right';
+    if (y !== py[v]) { ctx.strokeStyle = rgba(col, alpha * 0.35); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(px[v], py[v]); ctx.lineTo(x, y); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(11,14,21,.8)'; ctx.fillRect(rect[0], rect[1], rect[2], rect[3]);
+    ctx.fillStyle = rgba(col, alpha); ctx.fillText(text, x, y);
+  };
+  S.acts.forEach((act, i) => {
+    if (sc.actsDone < i) return;
+    const v = act.root, k = i === sc.actsDone ? clamp01(sc.actProg * 3) : 1;
+    ctx.strokeStyle = rgba(BRIGHT, k); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(px[v], py[v], 6, 0, 6.2832); ctx.stroke();
+    label(v, `${['I','II','III','IV','V','VI','VII','VIII','IX','X'][i] ?? i + 1} · ${act.name}`, BRIGHT, k);
+  });
+
+  if (sc.t > 0.8) {
+    const top = S.food.slice().sort((a, b) => b.w - a.w).slice(0, 7);
+    const a = clamp01((sc.t - 0.8) / 1) * (sc.actsDone >= 0 ? 0.55 : 1);
+    for (const f of top) label(f.node, `${S.nodes[f.node][0]} ${S.nodes[f.node][1]}`, f.fixed ? BRIGHT : CORAL, a);
+  }
+  // the heart: the compass mark
+  ctx.save(); ctx.translate(cx, cy);
+  const hb = reduce ? 0 : Math.sin(now * 2) * 0.06;
+  ctx.globalCompositeOperation = 'lighter';
+  const hg = ctx.createRadialGradient(0, 0, 0, 0, 0, 46);
+  hg.addColorStop(0, `rgba(230,196,120,${0.35 * sc.over})`); hg.addColorStop(1, 'rgba(230,196,120,0)');
+  ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, 46, 0, 6.2832); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.scale(1 + hb, 1 + hb);
+  ctx.strokeStyle = `rgba(205,162,78,${0.95 * sc.over})`; ctx.lineWidth = 1.1;
+  ctx.beginPath(); ctx.arc(0, 0, 15, 0, 6.2832); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -11); ctx.quadraticCurveTo(10, 0, 0, 11); ctx.quadraticCurveTo(-10, 0, 0, -11); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-11, 0); ctx.quadraticCurveTo(0, 10, 11, 0); ctx.quadraticCurveTo(0, -10, -11, 0); ctx.stroke();
+  ctx.fillStyle = `rgba(230,196,120,${sc.over})`; ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, 6.2832); ctx.fill();
+  ctx.restore();
+
+  if (hover >= 0) { ctx.strokeStyle = 'rgba(92,207,207,.9)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(px[hover], py[hover], 8, 0, 6.2832); ctx.stroke(); }
+}
+
+/* ── chrome: meters, surtitles, playbill ─────────────────────────── */
+const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+$('m-project').textContent = S.project.replace(/-/g, '\u2011');
+const vulnCount = S.food.length, advCount = S.food.reduce((s, f) => s + f.count, 0);
+$('m-sub').textContent = '';
+[[`${N - 1}`, ' packages · '], [`${M}`, ' tubes · '], [`${vulnCount}`, ' vulnerable']].forEach(([b, t]) => { $('m-sub').append(el('b', null, b), t); });
+$('b-date').textContent = S.meta.date;
+const cast = $('b-cast');
+const castRow = (k, v) => { cast.append(el('dt', null, k)); const dd = el('dd'); if (v instanceof Node) dd.append(v); else dd.textContent = v; cast.append(dd); };
+castRow('terrain', `${S.meta.file}`);
+castRow('food', `${vulnCount} packages · ${advCount} advisories`);
+const sevs = el('span', 'sevs'); const cnt = {};
+S.food.forEach((f) => { cnt[f.label] = (cnt[f.label] || 0) + 1; });
+['CRITICAL', 'HIGH', 'MODERATE', 'LOW'].forEach((k) => { if (cnt[k]) sevs.append(el('i', `sev-${k}`, `${cnt[k]} ${k.toLowerCase()}`)); });
+castRow('worst', sevs);
+castRow('organism', `γ ${S.gamma} · ${S.converged ? `converged at step ${S.converged}` : `${S.steps} steps`}`);
+castRow('source', 'OSV.dev advisories');
+
+const actsEl = $('b-acts'), actNodes = [];
+S.acts.forEach((a, i) => {
+  const d = el('div', 'act'), row = el('div', 'act-row');
+  row.append(el('span', 'act-n', ROMAN[i] ?? i + 1));
+  const nm = el('span', 'act-name', a.name); nm.append(el('small', null, a.version)); row.append(nm);
+  row.append(el('span', 'act-cov', `${Math.round(a.coverage * 100)}%`));
+  const bar = el('div', 'act-bar'), fill = el('i'); bar.append(fill); row.append(bar);
+  const items = el('div', 'act-items');
+  a.items.slice().sort((x, y) => (y.label === 'CRITICAL') - (x.label === 'CRITICAL')).slice(0, 4).forEach((it) => {
+    const line = el('div'); line.append(el('b', null, it.name), ` ${it.version} `);
+    if (it.fixed) line.append('→ ', el('span', 'to', it.fixed)); else line.append(el('span', 'nofix', '✕ no fix'));
+    line.append(` · ${it.count}× ${it.label.toLowerCase()}`);
+    if (it.shared.length) line.append(el('span', 'shared', ` · also via ${it.shared.join(', ')}`));
+    items.append(line);
+  });
+  if (a.items.length > 4) items.append(el('div', null, `+ ${a.items.length - 4} more`));
+  row.append(items); d.append(row); actsEl.append(d); actNodes.push([d, fill, a]);
+});
+if (!S.acts.length) actsEl.append(el('p', 'bill-p', S.food.length ? 'No entrance survived as backbone.' : 'No food. The organism rests.'));
+
+const bp = $('b-break-p');
+if (S.unfixed.length) S.unfixed.forEach((u) => { const l = el('div'); l.append(el('b', null, `${u.name} ${u.version}`), ` · ${u.id}`); bp.append(l); });
+else bp.textContent = 'Nothing unfixable. Every advisory here has a published fix.';
+if (!S.unfixed.length) $('b-break').querySelector('h3').textContent = 'No break to keep';
+
+const json = JSON.stringify(S.script, null, 2);
+$('b-json').textContent = json;
+$('b-warn').textContent = '';
+$('b-warn').append(el('b', null, 'Merge into package.json, run npm install, then your tests. '));
+if (S.majors.length) $('b-warn').append(`Major jumps (the parent may refuse): ${S.majors.join(' · ')}.`);
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(json); $('copy').textContent = 'copied'; } catch { $('copy').textContent = 'select ↓'; }
+  setTimeout(() => { $('copy').textContent = 'copy'; }, 1600);
+});
+$('b-colophon').textContent = `Every frame is a recorded solver step (Tero et al., Science 2010, adapted to directed dependencies). Coverage is the exact cut, not the organism's opinion. Generated ${S.meta.date} by theatre ${S.meta.version}.`;
+
+// scrubber ticks
+const ticks = $('ticks');
+[[0, 'overture'], [tGrow0, 'growth'], [tRit0, 'ritual'], [tCoda0, 'coda']].forEach(([t, k]) => { if (t < TOTAL) { const s = el('span', null, k); s.style.left = `${(t / TOTAL) * 100}%`; ticks.append(s); } });
+
+const STATE = (c) => c >= 0.92 ? ['closed', '● CLOSED · healthy'] : c >= 0.6 ? ['half', '◐ HALF-OPEN · thin'] : ['open', '○ OPEN · fragmented'];
+let lastLine = '', lastFocus = null;
+function surtitle(act, line) {
+  $('s-act').textContent = act;
+  if (line === lastLine) return;
+  lastLine = line;
+  const L = $('s-line'); L.classList.add('fade');
+  setTimeout(() => { L.textContent = line; L.classList.remove('fade'); }, reduce ? 0 : 280);
+}
+
+function chrome(sc) {
+  const step = sc.t < tGrow0 ? 0 : Math.round((sc.pos / Math.max(1, FC - 1)) * S.steps);
+  $('m-step').textContent = `${step} / ${S.steps}`;
+  let alive = 0; for (let e = 0; e < M; e++) if (Dnow(sc, e) >= 0.05) alive++;
+  $('m-alive').textContent = `${Math.round((alive / Math.max(1, M)) * 100)}%`;
+  let cov = 0;
+  if (sc.actsDone >= 0) {
+    const prev = sc.actsDone > 0 ? S.acts[sc.actsDone - 1].coverage : 0;
+    cov = prev + (S.acts[sc.actsDone].coverage - prev) * clamp01((sc.actProg - 0.5) / 0.4);
+  }
+  if (!S.food.length) cov = 1;
+  const big = $('m-cov'); big.firstChild.textContent = Math.round(cov * 100);
+  const [k, txt] = STATE(cov); const b = $('m-state'); b.className = `badge ${k}`; b.textContent = txt;
+  actNodes.forEach(([d, fill, a], i) => {
+    d.classList.toggle('on', sc.actsDone >= i); d.classList.toggle('now', sc.actsDone === i && !sc.coda);
+    fill.style.width = sc.actsDone >= i ? `${a.coverage * 100}%` : '0';
+  });
+  const focus = sc.coda ? $('b-script') : sc.actsDone >= 0 ? actNodes[sc.actsDone][0] : null;
+  if (focus && focus !== lastFocus && playing) { lastFocus = focus; focus.scrollIntoView({ block: sc.coda ? 'end' : 'nearest', behavior: reduce ? 'auto' : 'smooth' }); }
+  $('b-break').classList.toggle('on', sc.coda);
+  $('b-script').classList.toggle('on', sc.coda);
+
+  if (sc.t < tGrow0) surtitle('Overture', `${N - 1} packages, ${M} tubes. Before it learns anything, the organism reaches everywhere.`);
+  else if (sc.gp < 0.45) surtitle('The organism feeds', `${vulnCount} vulnerable packages are food. Each pulls current, by severity, toward your project.`);
+  else if (sc.t < tRit0) surtitle('The organism chooses', `Unfed tubes starve. Rival routes compete; the stronger one thickens. ${alive} of ${M} tubes still carry current.`);
+  else if (!sc.coda) {
+    const a = S.acts[sc.actsDone];
+    const sealed = a.items.filter((it) => it.fixed).length;
+    surtitle(`Act ${ROMAN[sc.actsDone] ?? sc.actsDone + 1}`, `${a.name}: the organism's ${['heaviest', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][sc.actsDone] ?? 'next'} entrance. ${sealed} package${sealed === 1 ? '' : 's'} sealed in gold. ${Math.round(a.coverage * 100)}% closed.`);
+  } else if (S.unfixed.length) surtitle('Coda', `${Math.round(S.coverage * 100)}% closed in ${nActs} acts. ${S.unfixed.length} cannot be fixed yet. The break is kept on the record, not hidden.`);
+  else surtitle('Coda', `${Math.round(S.coverage * 100)}% of the vulnerable surface closed in ${nActs} acts. The script is in the playbill.`);
+}
+
+/* ── playback ─────────────────────────────────────────────────────── */
+let t = reduce ? TOTAL : 0, playing = !reduce;
+const scrub = $('scrub'), play = $('play');
+const setPlaying = (p) => { playing = p; play.textContent = p ? '❚❚' : '▶'; play.setAttribute('aria-label', p ? 'Pause' : 'Play'); };
+setPlaying(playing);
+function frame(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+  if (playing) { t += dt; if (t >= TOTAL) { t = TOTAL; setPlaying(false); } scrub.value = Math.round((t / TOTAL) * 1000); }
+  const sc = sceneAt(t);
+  draw(sc, playing ? dt : 0); chrome(sc);
+  requestAnimationFrame(frame);
+}
+scrub.addEventListener('input', () => { t = (scrub.value / 1000) * TOTAL; setPlaying(false); });
+play.addEventListener('click', () => { if (t >= TOTAL) t = 0; setPlaying(!playing); });
+addEventListener('keydown', (e) => {
+  if (e.target instanceof HTMLInputElement && e.key !== ' ') return;
+  if (e.key === ' ') { e.preventDefault(); if (t >= TOTAL) t = 0; setPlaying(!playing); }
+  else if (e.key === 'ArrowRight') { t = Math.min(TOTAL, t + 1); }
+  else if (e.key === 'ArrowLeft') { t = Math.max(0, t - 1); }
+  else if (e.key === 'r' || e.key === 'R') { t = 0; setPlaying(true); }
+  else if (e.key === 'h' || e.key === 'H') { document.body.classList.toggle('clean'); requestAnimationFrame(layout); }
+  else if (/^[1-9]$/.test(e.key) && +e.key <= nActs) { t = tRit0 + (+e.key - 1) * T_ACT + T_ACT * 0.95; setPlaying(false); }
+});
+const qs = new URLSearchParams(location.search);
+if (qs.has('clean')) document.body.classList.add('clean');
+// ?t=<seconds> seeks and holds — for thumbnails and stills
+if (qs.has('t')) { t = Math.max(0, Math.min(TOTAL, Number.parseFloat(qs.get('t')) || 0)); setPlaying(false); scrub.value = Math.round((t / TOTAL) * 1000); }
+
+// hover: name, version, what it carries
+const tip = $('tip');
+cv.addEventListener('mousemove', (ev) => {
+  const r = cv.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top;
+  let best = -1, bd = 12 * 12;
+  for (let v = 0; v < N; v++) { const dx = px[v] - x, dy = py[v] - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = v; } }
+  hover = best;
+  if (best < 0) { tip.style.display = 'none'; return; }
+  const [name, ver, dev] = S.nodes[best];
+  tip.textContent = '';
+  tip.append(el('b', null, best === 0 ? `${name} — your project` : `${name} ${ver}`));
+  if (dev) tip.append(el('div', null, 'dev dependency'));
+  tip.append(el('div', null, best === 0 ? 'the heart: all flux drains here' : `depth ${depth[best]} · ${parents[best].length} parent${parents[best].length === 1 ? '' : 's'}`));
+  const fi = foodOf.get(best);
+  if (fi != null) {
+    const f = S.food[fi];
+    tip.append(el('div', 'sev', `${f.count} advisor${f.count === 1 ? 'y' : 'ies'} · worst ${f.label.toLowerCase()}`));
+    tip.append(el('div', null, `${f.top.id}: ${f.top.summary}`));
+    tip.append(el('div', null, f.fixed ? `fixed in ${f.fixed}` : 'no fix published'));
+  }
+  tip.style.display = 'block';
+  const tx = Math.min(x + 14, r.width - 310), ty = Math.min(y + 14, r.height - tip.offsetHeight - 8);
+  tip.style.left = `${tx}px`; tip.style.top = `${ty}px`;
+});
+cv.addEventListener('mouseleave', () => { hover = -1; tip.style.display = 'none'; });
+
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 120); });
+layout();
+document.fonts?.ready?.then(() => layout());
+requestAnimationFrame((n) => { lastT = n; frame(n); });
+})();
+</script>
+</body>
+</html>

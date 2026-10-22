@@ -1,0 +1,13 @@
+
+  ══════════════════════════════════════════════════════════════════════════
+     T H E A T R E   O F   D E P E N D E N C I E S
+     adaptive-response · a slime mold reads docs/audits/dependency-reduction-20261022/after/sbom.json
+  ══════════════════════════════════════════════════════════════════════════
+
+  THE TERRAIN     225 packages · 284 tubes · 13 entrances
+  THE FOOD        none — the organism has nothing to eat
+  THE ORGANISM    converged in 121 steps · γ 1.8 · 0 of 284 tubes survive
+
+  THE RITUAL  none needed. OSV knows of no advisory affecting these versions.
+  STATE           ● CLOSED · healthy   nothing to close
+
