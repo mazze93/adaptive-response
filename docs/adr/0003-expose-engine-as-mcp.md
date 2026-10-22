@@ -3,6 +3,8 @@
 - **Status:** Accepted — remote endpoint implemented 2026-09-16; stdio package still pending
 - **Date:** 2026-09-16
 
+The handler dependency choice is superseded by [ADR 0006](0006-narrow-mcp-and-typescript-builds.md). The original decision below is retained as history.
+
 ## Context
 
 The `AdaptiveResponse` contract — decision routing (`answer | clarify | hybrid`),

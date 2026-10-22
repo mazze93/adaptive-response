@@ -8,4 +8,5 @@ dist/
 
 # Rebuildable dependency-analysis cache; frozen snapshot is tracked.
 docs/audits/dependency-reduction-20261022/osv-cache/
-.test-build/
+__pycache__/
+dist-dry-run/

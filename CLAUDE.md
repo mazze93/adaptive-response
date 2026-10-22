@@ -139,7 +139,7 @@ interface AdaptiveResponse {
 
 **Adding a new transport (CLI, stdio MCP, …):**
 - Call `generateAdaptiveResponse` from `@adaptive-response/core`; map the `EngineResult` error codes to the transport's error envelope. Do not re-implement the Anthropic call, validation, or repair logic. `apps/api/src/mcp.ts` (remote MCP via `createMcpHandler`, ADR 0003) is the reference adapter; the stdio `@adaptive-response/mcp` package is still pending.
-- MCP note: use the stateless `createMcpHandler` lane (`agents/mcp/server` + MCP SDK v2). `McpAgent` is deprecated upstream — do not add a Durable Object for MCP unless a feature genuinely needs sessions.
+- MCP note: use the stateless `createMcpHandler` from `@modelcontextprotocol/server`, with explicit Host/Origin validation (ADR 0006). Do not reintroduce the broad `agents` dependency for this adapter. `McpAgent` is deprecated upstream — do not add a Durable Object for MCP unless a feature genuinely needs sessions.
 
 **Making an architectural decision:**
 - Record it in `docs/adr/` (next sequential number, Nygard format). Supersede — never rewrite — accepted ADRs.
@@ -162,7 +162,7 @@ pnpm dev:api          # wrangler dev (localhost:8787)
 pnpm dev:demo         # vite dev (localhost:5173, proxies /v1 → :8787)
 ```
 
-CI (`.github/workflows/ci.yml`) pins **pnpm 9** and runs build → typecheck → test.
+CI (`.github/workflows/ci.yml`) pins **pnpm 9.15.9** and uses a frozen install, then checks builds, types, tests, the demo, a Worker dry-run, and packed package imports/declarations.
 It does not run `pnpm lint`, so check formatting locally before pushing.
 
 ---

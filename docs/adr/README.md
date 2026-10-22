@@ -14,3 +14,4 @@ supersede it with a new one and cross-link.
 | [0003](0003-expose-engine-as-mcp.md) | Expose the engine as MCP (remote + stdio) | Accepted (stdio pending) |
 | [0004](0004-distribution-hardening.md) | Distribution hardening: npm publishing, schema versioning, API auth | Accepted (npm publish pending) |
 | [0005](0005-cipher-gothic-demo-restyle.md) | Restyle the demo on the Cipher Gothic design system | Proposed |
+| [0006](0006-narrow-mcp-and-typescript-builds.md) | Narrow MCP dependencies and use TypeScript library builds | Accepted (supersedes ADR 0003 handler dependency choice) |

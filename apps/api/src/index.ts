@@ -218,7 +218,9 @@ export default {
       const workersDev = url.hostname.endsWith(".workers.dev");
       const allowedHosts = localHosts.includes(url.hostname)
         ? localHosts
-        : workersDev ? [url.hostname] : undefined;
+        : workersDev
+          ? [url.hostname]
+          : undefined;
       const hostRejection = allowedHosts
         ? hostHeaderValidationResponse(request, allowedHosts)
         : undefined;
@@ -238,9 +240,14 @@ export default {
         return await handler.fetch(request);
       } catch (error) {
         console.error("[mcp] handler_error", requestId, String(error));
-        return new Response(JSON.stringify({
-          jsonrpc: "2.0", id: null, error: { code: -32603, message: "Internal error" },
-        }), { status: 500, headers: { "Content-Type": "application/json", ...SECURITY_HEADERS } });
+        return new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: null,
+            error: { code: -32603, message: "Internal error" },
+          }),
+          { status: 500, headers: { "Content-Type": "application/json", ...SECURITY_HEADERS } },
+        );
       }
     }
 
