@@ -1,0 +1,48 @@
+{
+  "commit": "36a244d6491463d83f4f0a051906a991d9c9fb06",
+  "node": "24.21.0",
+  "pnpm": "9.15.9",
+  "checks": [
+    {
+      "check": "install",
+      "exit": 0,
+      "fresh_installed_packages": 120
+    },
+    {
+      "check": "build",
+      "exit": 0
+    },
+    {
+      "check": "typecheck",
+      "exit": 0
+    },
+    {
+      "check": "test",
+      "exit": 0
+    },
+    {
+      "check": "dependency-regressions",
+      "exit": 0
+    },
+    {
+      "check": "esbuild-check",
+      "exit": 0
+    },
+    {
+      "check": "audit",
+      "exit": 0
+    },
+    {
+      "check": "demo-build",
+      "exit": 0
+    },
+    {
+      "check": "worker-dry-run",
+      "exit": 0
+    },
+    {
+      "check": "packed-artifacts",
+      "exit": 0
+    }
+  ]
+}

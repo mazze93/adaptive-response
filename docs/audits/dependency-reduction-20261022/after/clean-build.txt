@@ -1,0 +1,13 @@
+
+> adaptive-response@ build /private/var/folders/_b/cck3976d0_14dx_rt3mw2ckr0000gn/T/adaptive-response-clean-n1qd2w96
+> pnpm -r --filter './packages/**' build
+
+Scope: 4 of 7 workspace projects
+packages/schema build$ tsc -p tsconfig.build.json
+packages/schema build: Done
+packages/core build$ tsc -p tsconfig.build.json
+packages/sdk build$ tsc -p tsconfig.build.json
+packages/sdk build: Done
+packages/core build: Done
+packages/ui build$ tsc -p tsconfig.build.json
+packages/ui build: Done

@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "file": "docs/audits/dependency-reduction-20261022/after/sbom.json",
+  "project": "adaptive-response",
+  "terrain": {
+    "packages": 225,
+    "edges": 284
+  },
+  "organism": {
+    "steps": 121,
+    "converged": 121,
+    "gamma": 1.8
+  },
+  "state": "CLOSED",
+  "coverage": 1,
+  "closable": 1,
+  "acts": [],
+  "secondOpinion": null,
+  "unfixed": [],
+  "script": {
+    "dependencies": {},
+    "overrides": {},
+    "majorJumps": []
+  }
+}

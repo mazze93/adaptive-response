@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<title>Theatre of Dependencies</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='44' fill='none' stroke='%23cda24e' stroke-width='3'/%3E%3Cpath d='M50 14 A66 66 0 0 1 50 86 A66 66 0 0 1 50 14Z' fill='none' stroke='%23cda24e' stroke-width='3'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%23cda24e'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=DM+Mono:wght@400;500&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   THEATRE OF DEPENDENCIES — the stage
+   obsidian ground · gold is flux and, once sealed, the kintsugi seam ·
+   teal is a closed wound · coral marks only what nothing can fix.
+   ══════════════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#0b0e15; --ink-raise:#121723; --ink-2:#0e131c;
+  --gold:#cda24e; --gold-bright:#e6c478; --gold-deep:#8a6f33;
+  --teal:#5CCFCF; --coral:#F07178;
+  --paper:#ece7da; --paper-soft:#c4bdab; --muted:#a39c84;
+  --hair:rgba(205,162,78,.18); --hair-soft:rgba(196,189,171,.12);
+  --serif:"Cormorant Garamond",Georgia,"Times New Roman",serif;
+  --mono:"DM Mono",ui-monospace,Menlo,monospace;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --bill:clamp(300px,27vw,400px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--ink);color:var(--paper);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow:hidden}
+body{display:grid;grid-template-columns:minmax(0,1fr) var(--bill);grid-template-rows:1fr auto}
+
+/* ── the stage ──────────────────────────────────────────────────────── */
+#stage{position:relative;grid-row:1;grid-column:1;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 45%,rgba(0,0,0,.55) 100%)}
+
+.mast{position:absolute;top:clamp(16px,3vh,32px);left:clamp(16px,2.6vw,40px);pointer-events:none;max-width:52%}
+.mast .eyebrow{font-family:var(--mono);font-size:.66rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);display:flex;gap:.8rem;align-items:center}
+.mast .eyebrow::before{content:"";width:24px;height:1px;background:var(--gold)}
+.mast h1{font-family:var(--serif);font-weight:600;font-size:clamp(1.9rem,3.6vw,3.3rem);line-height:.95;margin-top:.7rem;letter-spacing:-.01em}
+.mast h1 em{color:var(--gold);font-weight:500}
+.mast .sub{font-family:var(--mono);font-size:.74rem;color:var(--muted);margin-top:.8rem}
+.mast .sub b{color:var(--paper-soft);font-weight:400}
+
+.meters{position:absolute;top:clamp(16px,3vh,32px);right:clamp(16px,2vw,32px);text-align:right;pointer-events:none}
+.meter-k{font-family:var(--mono);font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-deep)}
+.meter-v{font-family:var(--mono);font-size:.86rem;color:var(--paper-soft);margin:.15rem 0 .7rem}
+.big{font-family:var(--serif);font-weight:600;font-size:clamp(3rem,6vw,5.4rem);line-height:.85;color:var(--gold-bright);font-variant-numeric:lining-nums tabular-nums}
+.big small{font-size:.42em;color:var(--gold);margin-left:.08em}
+.badge{display:inline-flex;gap:.5rem;align-items:center;margin-top:.7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;
+  padding:.38rem .75rem;border-radius:6px;border:1px solid var(--hair-soft);transition:color .5s,border-color .5s}
+.badge.open{color:var(--coral);border-color:rgba(240,113,120,.4)}
+.badge.half{color:var(--teal);border-color:rgba(92,207,207,.4)}
+.badge.closed{color:var(--gold-bright);border-color:rgba(205,162,78,.5)}
+
+/* surtitles — the opera convention: the plot, projected above the action */
+.surtitle{position:absolute;left:50%;bottom:clamp(18px,4vh,40px);transform:translateX(-50%);width:min(760px,88%);
+  text-align:center;pointer-events:none}
+.surtitle .act{font-family:var(--mono);font-size:.64rem;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);min-height:1em}
+.surtitle .line{font-family:var(--serif);font-style:italic;font-weight:500;font-size:clamp(1.15rem,2vw,1.6rem);line-height:1.3;color:var(--paper);
+  margin-top:.35rem;text-shadow:0 2px 18px rgba(0,0,0,.9);min-height:2.6em;transition:opacity .45s}
+.surtitle .line.fade{opacity:0}
+
+.tip{position:absolute;pointer-events:none;background:rgba(14,19,28,.94);border:1px solid var(--hair);border-radius:8px;
+  padding:.55rem .7rem;font-family:var(--mono);font-size:.72rem;color:var(--paper-soft);max-width:300px;display:none;z-index:5;line-height:1.5}
+.tip b{color:var(--paper);font-weight:500}
+.tip .sev{color:var(--coral)}
+
+/* ── the playbill ───────────────────────────────────────────────────── */
+#bill{grid-row:1;grid-column:2;border-left:1px solid var(--hair);background:linear-gradient(180deg,var(--ink-raise),var(--ink-2));
+  overflow-y:auto;padding:clamp(18px,3vh,30px) clamp(16px,1.6vw,26px) 28px;position:relative}
+#bill::before{content:"";position:absolute;left:-1px;top:0;bottom:0;width:1px;
+  background:repeating-linear-gradient(180deg,var(--gold-deep) 0 6px,transparent 6px 12px);opacity:.6}
+.bill-k{font-family:var(--mono);font-size:.62rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);display:flex;justify-content:space-between}
+.bill-k span:last-child{color:var(--gold-deep)}
+.bill-h{font-family:var(--serif);font-weight:600;font-size:1.65rem;line-height:1.05;margin:.5rem 0 .2rem}
+.bill-h em{color:var(--gold);font-weight:500}
+.bill-p{font-size:.86rem;color:var(--muted);line-height:1.55}
+.cast{display:grid;grid-template-columns:auto 1fr;gap:.25rem .9rem;margin:1.1rem 0 1.4rem;font-family:var(--mono);font-size:.74rem}
+.cast dt{color:var(--gold-deep);text-transform:uppercase;letter-spacing:.14em;font-size:.6rem;padding-top:.2rem}
+.cast dd{color:var(--paper-soft);overflow-wrap:anywhere;min-width:0}
+.sevs{display:flex;gap:.7rem;flex-wrap:wrap}
+.sevs i{font-style:normal;display:inline-flex;align-items:center;gap:.3rem}
+.sevs i::before{content:"";width:7px;height:7px;border-radius:2px;background:currentColor}
+.sev-CRITICAL{color:var(--coral)} .sev-HIGH{color:var(--gold-bright)} .sev-MODERATE{color:var(--gold)} .sev-LOW,.sev-UNKNOWN{color:var(--muted)}
+
+.acts{border-top:1px solid var(--hair-soft)}
+.act{padding:.85rem 0;border-bottom:1px solid var(--hair-soft);opacity:.18;transition:opacity .6s,transform .6s;transform:translateX(6px)}
+.act.on{opacity:1;transform:none}
+.act.now .act-name{color:var(--gold-bright)}
+.act-row{display:grid;grid-template-columns:2.6rem 1fr auto;align-items:baseline;gap:.4rem}
+.act-n{font-family:var(--serif);font-style:italic;font-weight:600;font-size:1.25rem;color:var(--gold)}
+.act-name{font-family:var(--mono);font-size:.84rem;color:var(--paper);transition:color .4s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act-name small{color:var(--muted);font-size:.72rem;margin-left:.35rem}
+.act-cov{font-family:var(--mono);font-size:.74rem;color:var(--gold-bright)}
+.act-bar{grid-column:2/4;height:2px;background:var(--hair-soft);margin:.45rem 0 .35rem;position:relative;overflow:hidden;border-radius:2px}
+.act-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright));width:0;transition:width .9s cubic-bezier(.16,1,.3,1)}
+.act-items{grid-column:2/4;font-family:var(--mono);font-size:.68rem;color:var(--muted);line-height:1.65}
+.act-items b{color:var(--paper-soft);font-weight:400}
+.act-items .to{color:var(--teal)}
+.act-items .nofix{color:var(--coral)}
+.act-items .shared{color:var(--coral);opacity:.85}
+
+.break{margin-top:1.3rem;padding:.9rem 1rem;border:1px solid rgba(240,113,120,.3);border-left:2px solid var(--coral);border-radius:0 8px 8px 0;
+  opacity:.15;transition:opacity .8s}
+.break.on{opacity:1}
+.break h3{font-family:var(--serif);font-weight:600;font-style:italic;font-size:1.15rem;color:var(--coral)}
+.break p{font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:.35rem;line-height:1.6}
+.break p b{color:var(--paper-soft);font-weight:400}
+
+.script{margin-top:1.3rem;opacity:.15;transition:opacity .8s}
+.script.on{opacity:1}
+.script-head{display:flex;justify-content:space-between;align-items:center}
+.script h3{font-family:var(--serif);font-weight:600;font-size:1.15rem}
+.script h3 em{color:var(--gold)}
+.copy{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;color:var(--ink);background:var(--gold);border:0;border-radius:6px;padding:.35rem .7rem;cursor:pointer}
+.copy:hover{background:var(--gold-bright)}
+.copy:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+pre{margin-top:.6rem;font-family:var(--mono);font-size:.66rem;line-height:1.55;color:var(--paper-soft);background:rgba(0,0,0,.35);
+  border:1px solid var(--hair-soft);border-radius:8px;padding:.75rem .8rem;overflow-x:auto;max-height:260px}
+.script .warn{font-family:var(--mono);font-size:.64rem;color:var(--muted);margin-top:.5rem;line-height:1.55}
+.script .warn b{color:var(--coral);font-weight:400}
+.colophon{margin-top:1.6rem;font-family:var(--mono);font-size:.6rem;color:var(--gold-deep);letter-spacing:.06em;line-height:1.7}
+
+/* ── the scrubber ───────────────────────────────────────────────────── */
+#deck{grid-row:2;grid-column:1/3;display:flex;align-items:center;gap:1rem;padding:.6rem clamp(16px,2vw,28px);
+  border-top:1px solid var(--hair);background:var(--ink-2)}
+.play{width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer;flex:none;
+  display:grid;place-items:center;font-size:.8rem}
+.play:hover{background:rgba(205,162,78,.12)}
+.play:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.track{position:relative;flex:1;height:34px;display:flex;align-items:center}
+.track input{width:100%;appearance:none;-webkit-appearance:none;background:transparent;height:34px;cursor:pointer;position:relative;z-index:2}
+.track input::-webkit-slider-runnable-track{height:2px;background:var(--hair)}
+.track input::-moz-range-track{height:2px;background:var(--hair)}
+.track input::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--gold-bright);margin-top:-5.5px;box-shadow:0 0 12px rgba(230,196,120,.7)}
+.track input::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--gold-bright);border:0}
+.track input:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.ticks{position:absolute;inset:0;pointer-events:none}
+.ticks span{position:absolute;top:4px;font-family:var(--mono);font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);transform:translateX(-50%);white-space:nowrap}
+.ticks span::after{content:"";position:absolute;left:50%;top:15px;width:1px;height:8px;background:var(--gold-deep)}
+.keys{font-family:var(--mono);font-size:.62rem;color:var(--gold-deep);white-space:nowrap}
+.keys kbd{font-family:inherit;color:var(--muted);border:1px solid var(--hair-soft);border-radius:4px;padding:0 .3rem;margin:0 .15rem}
+
+body.clean #bill,body.clean #deck,body.clean .meters .meter-k,body.clean .meters .meter-v{display:none}
+body.clean{grid-template-columns:1fr}
+
+@media (max-width:860px){
+  html,body{overflow:auto}
+  body{grid-template-columns:minmax(0,1fr);grid-template-rows:72vh auto auto}
+  #stage{grid-row:1}
+  #deck{grid-row:2;grid-column:1}
+  #bill{grid-row:3;grid-column:1;border-left:0;border-top:1px solid var(--hair);overflow:visible}
+  .keys{display:none}
+  .mast{max-width:58%}
+  .meters{max-width:40%}
+  .big{font-size:2.6rem}
+  .badge{font-size:.62rem;padding:.3rem .5rem}
+  .surtitle{width:92%}
+  .ticks span{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .act,.act-bar i,.break,.script,.surtitle .line,.badge{transition:none}
+}
+</style>
+</head>
+<body>
+<main id="stage" aria-label="Animated dependency network">
+  <canvas id="c" role="img" aria-label="A slime-mold network solver running over your dependency graph: tubes that carry vulnerable code to your project thicken; the rest starve; the ritual then seals each entrance in gold."></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+  <header class="mast">
+    <div class="eyebrow">Theatre of Dependencies</div>
+    <h1>A slime mold reads <em id="m-project"></em></h1>
+    <div class="sub" id="m-sub"></div>
+  </header>
+  <div class="meters" aria-live="polite">
+    <div class="meter-k">step</div><div class="meter-v" id="m-step">—</div>
+    <div class="meter-k">terrain alive</div><div class="meter-v" id="m-alive">—</div>
+    <div class="meter-k">surface closed</div>
+    <div class="big" id="m-cov">0<small>%</small></div>
+    <div><span class="badge open" id="m-state">○ OPEN · fragmented</span></div>
+  </div>
+  <div class="surtitle" aria-live="polite"><div class="act" id="s-act"></div><div class="line" id="s-line"></div></div>
+  <div class="tip" id="tip"></div>
+</main>
+
+<aside id="bill" aria-label="Playbill">
+  <div class="bill-k"><span>Tonight's programme</span><span id="b-date"></span></div>
+  <h2 class="bill-h">The Upgrade <em>Ritual</em></h2>
+  <p class="bill-p">Vulnerable packages are food. Your project is the heart. The organism lays tubes between them, keeps the ones that carry current, and lets the rest starve. The entrances it keeps are where you act.</p>
+  <dl class="cast" id="b-cast"></dl>
+  <div class="acts" id="b-acts"></div>
+  <div class="break" id="b-break"><h3>The break is kept</h3><p id="b-break-p"></p></div>
+  <div class="script" id="b-script">
+    <div class="script-head"><h3>The <em>script</em></h3><button class="copy" id="copy" type="button">copy</button></div>
+    <pre id="b-json"></pre>
+    <p class="warn" id="b-warn"></p>
+  </div>
+  <p class="colophon" id="b-colophon"></p>
+</aside>
+
+<nav id="deck" aria-label="Playback">
+  <button class="play" id="play" type="button" aria-label="Pause">❚❚</button>
+  <div class="track"><div class="ticks" id="ticks" aria-hidden="true"></div><input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Timeline"></div>
+  <div class="keys"><kbd>space</kbd>play <kbd>←</kbd><kbd>→</kbd>scrub <kbd>R</kbd>replay <kbd>H</kbd>clean</div>
+</nav>
+
+<script type="application/json" id="stage-data">{"meta":{"file":"docs/audits/dependency-reduction-20261022/before/sbom.json","date":"2026-10-22","version":"0.2.0"},"project":"adaptive-response","nodes":[["adaptive-response","",0,1],["@babel/code-frame","8.0.0",0,1],["@babel/compat-data","8.0.5",0,1],["@babel/core","8.0.5",0,1],["@babel/generator","8.0.5",0,1],["@babel/helper-annotate-as-pure","8.0.0",0,1],["@babel/helper-compilation-targets","8.0.5",0,1],["@babel/helper-create-class-features-plugin","8.0.5",0,1],["@babel/helper-globals","8.0.0",0,1],["@babel/helper-member-expression-to-functions","8.0.5",0,1],["@babel/helper-optimise-call-expression","8.0.0",0,1],["@babel/helper-plugin-utils","8.0.1",0,1],["@babel/helper-replace-supers","8.0.1",0,1],["@babel/helper-skip-transparent-expression-wrappers","8.0.0",0,1],["@babel/helper-string-parser","8.0.0",0,1],["@babel/helper-validator-identifier","8.0.4",0,1],["@babel/helper-validator-option","8.0.0",0,1],["@babel/helpers","8.0.5",0,1],["@babel/parser","8.0.5",0,1],["@babel/plugin-proposal-decorators","8.0.2",0,1],["@babel/plugin-syntax-decorators","8.0.1",0,1],["@babel/runtime-corejs3","7.29.7",0,1],["@babel/runtime","7.29.7",0,1],["@babel/template","8.0.0",0,1],["@babel/traverse","8.0.5",0,1],["@babel/types","8.0.5",0,1],["@biomejs/biome","2.5.15",1,1],["@biomejs/cli-darwin-arm64","2.5.15",1,1],["@biomejs/cli-darwin-x64","2.5.15",1,1],["@biomejs/cli-linux-arm64-musl","2.5.15",1,1],["@biomejs/cli-linux-arm64","2.5.15",1,1],["@biomejs/cli-linux-x64-musl","2.5.15",1,1],["@biomejs/cli-linux-x64","2.5.15",1,1],["@biomejs/cli-win32-arm64","2.5.15",1,1],["@biomejs/cli-win32-x64","2.5.15",1,1],["@cfworker/json-schema","4.1.1",0,1],["@cloudflare/kv-asset-handler","0.5.0",1,1],["@cloudflare/unenv-preset","2.16.2",1,1],["@cloudflare/workerd-darwin-64","1.20261012.1",1,1],["@cloudflare/workerd-darwin-arm64","1.20261012.1",1,1],["@cloudflare/workerd-linux-64","1.20261012.1",1,1],["@cloudflare/workerd-linux-arm64","1.20261012.1",1,1],["@cloudflare/workerd-windows-64","1.20261012.1",1,1],["@cloudflare/workers-types","5.20261018.1",1,1],["@cspotcode/source-map-support","0.8.1",1,1],["@emnapi/runtime","1.11.3",1,1],["@esbuild/aix-ppc64","0.28.1",0,1],["@esbuild/aix-ppc64","0.28.2",1,1],["@esbuild/android-arm64","0.28.1",0,1],["@esbuild/android-arm64","0.28.2",1,1],["@esbuild/android-arm","0.28.1",0,1],["@esbuild/android-arm","0.28.2",1,1],["@esbuild/android-x64","0.28.1",0,1],["@esbuild/android-x64","0.28.2",1,1],["@esbuild/darwin-arm64","0.28.1",0,1],["@esbuild/darwin-arm64","0.28.2",1,1],["@esbuild/darwin-x64","0.28.1",0,1],["@esbuild/darwin-x64","0.28.2",1,1],["@esbuild/freebsd-arm64","0.28.1",0,1],["@esbuild/freebsd-arm64","0.28.2",1,1],["@esbuild/freebsd-x64","0.28.1",0,1],["@esbuild/freebsd-x64","0.28.2",1,1],["@esbuild/linux-arm64","0.28.1",0,1],["@esbuild/linux-arm64","0.28.2",1,1],["@esbuild/linux-arm","0.28.1",0,1],["@esbuild/linux-arm","0.28.2",1,1],["@esbuild/linux-ia32","0.28.1",0,1],["@esbuild/linux-ia32","0.28.2",1,1],["@esbuild/linux-loong64","0.28.1",0,1],["@esbuild/linux-loong64","0.28.2",1,1],["@esbuild/linux-mips64el","0.28.1",0,1],["@esbuild/linux-mips64el","0.28.2",1,1],["@esbuild/linux-ppc64","0.28.1",0,1],["@esbuild/linux-ppc64","0.28.2",1,1],["@esbuild/linux-riscv64","0.28.1",0,1],["@esbuild/linux-riscv64","0.28.2",1,1],["@esbuild/linux-s390x","0.28.1",0,1],["@esbuild/linux-s390x","0.28.2",1,1],["@esbuild/linux-x64","0.28.1",0,1],["@esbuild/linux-x64","0.28.2",1,1],["@esbuild/netbsd-arm64","0.28.1",0,1],["@esbuild/netbsd-arm64","0.28.2",1,1],["@esbuild/netbsd-x64","0.28.1",0,1],["@esbuild/netbsd-x64","0.28.2",1,1],["@esbuild/openbsd-arm64","0.28.1",0,1],["@esbuild/openbsd-arm64","0.28.2",1,1],["@esbuild/openbsd-x64","0.28.1",0,1],["@esbuild/openbsd-x64","0.28.2",1,1],["@esbuild/openharmony-arm64","0.28.1",0,1],["@esbuild/openharmony-arm64","0.28.2",1,1],["@esbuild/sunos-x64","0.28.1",0,1],["@esbuild/sunos-x64","0.28.2",1,1],["@esbuild/win32-arm64","0.28.1",0,1],["@esbuild/win32-arm64","0.28.2",1,1],["@esbuild/win32-ia32","0.28.1",0,1],["@esbuild/win32-ia32","0.28.2",1,1],["@esbuild/win32-x64","0.28.1",0,1],["@esbuild/win32-x64","0.28.2",1,1],["@hono/node-server","2.1.1",0,1],["@img/colour","1.1.0",1,1],["@img/sharp-darwin-arm64","0.35.5",1,1],["@img/sharp-darwin-x64","0.35.5",1,1],["@img/sharp-freebsd-wasm32","0.35.5",1,1],["@img/sharp-libvips-darwin-arm64","1.3.4",1,1],["@img/sharp-libvips-darwin-x64","1.3.4",1,1],["@img/sharp-libvips-linux-arm64","1.3.4",1,1],["@img/sharp-libvips-linux-arm","1.3.4",1,1],["@img/sharp-libvips-linux-ppc64","1.3.4",1,1],["@img/sharp-libvips-linux-riscv64","1.3.4",1,1],["@img/sharp-libvips-linux-s390x","1.3.4",1,1],["@img/sharp-libvips-linux-x64","1.3.4",1,1],["@img/sharp-libvips-linuxmusl-arm64","1.3.4",1,1],["@img/sharp-libvips-linuxmusl-x64","1.3.4",1,1],["@img/sharp-linux-arm64","0.35.5",1,1],["@img/sharp-linux-arm","0.35.5",1,1],["@img/sharp-linux-ppc64","0.35.5",1,1],["@img/sharp-linux-riscv64","0.35.5",1,1],["@img/sharp-linux-s390x","0.35.5",1,1],["@img/sharp-linux-x64","0.35.5",1,1],["@img/sharp-linuxmusl-arm64","0.35.5",1,1],["@img/sharp-linuxmusl-x64","0.35.5",1,1],["@img/sharp-wasm32","0.35.5",1,1],["@img/sharp-webcontainers-wasm32","0.35.5",1,1],["@img/sharp-win32-arm64","0.35.5",1,1],["@img/sharp-win32-ia32","0.35.5",1,1],["@img/sharp-win32-x64","0.35.5",1,1],["@jridgewell/gen-mapping","0.3.13",1,1],["@jridgewell/gen-mapping","0.4.0-beta.0",0,1],["@jridgewell/resolve-uri","3.1.2",0,1],["@jridgewell/sourcemap-codec","1.6.0",0,1],["@jridgewell/trace-mapping","0.3.31",0,1],["@jridgewell/trace-mapping","0.3.9",1,1],["@modelcontextprotocol/client","2.3.1",0,1],["@modelcontextprotocol/core","2.3.1",0,1],["@modelcontextprotocol/sdk","1.32.1",0,1],["@modelcontextprotocol/server","2.3.1",0,1],["@napi-rs/lzma-linux-x64-gnu","1.5.1",1,1],["@oxc-project/types","0.154.0",0,1],["@poppinss/colors","4.1.6",1,1],["@poppinss/dumper","0.6.5",1,1],["@poppinss/exception","1.2.3",1,1],["@rolldown/binding-android-arm-eabi","1.2.14",0,1],["@rolldown/binding-android-arm64","1.2.14",0,1],["@rolldown/binding-darwin-arm64","1.2.14",0,1],["@rolldown/binding-darwin-x64","1.2.14",0,1],["@rolldown/binding-freebsd-x64","1.2.14",0,1],["@rolldown/binding-linux-arm-gnueabihf","1.2.14",0,1],["@rolldown/binding-linux-arm64-gnu","1.2.14",0,1],["@rolldown/binding-linux-arm64-musl","1.2.14",0,1],["@rolldown/binding-linux-ppc64-gnu","1.2.14",0,1],["@rolldown/binding-linux-s390x-gnu","1.2.14",0,1],["@rolldown/binding-linux-x64-gnu","1.2.14",0,1],["@rolldown/binding-linux-x64-musl","1.2.14",0,1],["@rolldown/binding-openharmony-arm64","1.2.14",0,1],["@rolldown/binding-win32-arm64-msvc","1.2.14",0,1],["@rolldown/binding-win32-x64-msvc","1.2.14",0,1],["@rolldown/plugin-babel","0.2.4",0,1],["@rolldown/pluginutils","1.0.1",0,1],["@rollup/rollup-android-arm-eabi","4.64.10",1,1],["@rollup/rollup-android-arm64","4.64.10",1,1],["@rollup/rollup-darwin-arm64","4.64.10",1,1],["@rollup/rollup-darwin-x64","4.64.10",1,1],["@rollup/rollup-freebsd-arm64","4.64.10",1,1],["@rollup/rollup-freebsd-x64","4.64.10",1,1],["@rollup/rollup-linux-arm-gnueabihf","4.64.10",1,1],["@rollup/rollup-linux-arm-musleabihf","4.64.10",1,1],["@rollup/rollup-linux-arm64-gnu","4.64.10",1,1],["@rollup/rollup-linux-arm64-musl","4.64.10",1,1],["@rollup/rollup-linux-loong64-gnu","4.64.10",1,1],["@rollup/rollup-linux-loong64-musl","4.64.10",1,1],["@rollup/rollup-linux-ppc64-gnu","4.64.10",1,1],["@rollup/rollup-linux-ppc64-musl","4.64.10",1,1],["@rollup/rollup-linux-riscv64-gnu","4.64.10",1,1],["@rollup/rollup-linux-riscv64-musl","4.64.10",1,1],["@rollup/rollup-linux-s390x-gnu","4.64.10",1,1],["@rollup/rollup-linux-x64-gnu","4.64.10",1,1],["@rollup/rollup-linux-x64-musl","4.64.10",1,1],["@rollup/rollup-openbsd-x64","4.64.10",1,1],["@rollup/rollup-openharmony-arm64","4.64.10",1,1],["@rollup/rollup-win32-arm64-msvc","4.64.10",1,1],["@rollup/rollup-win32-ia32-msvc","4.64.10",1,1],["@rollup/rollup-win32-x64-gnu","4.64.10",1,1],["@rollup/rollup-win32-x64-msvc","4.64.10",1,1],["@sindresorhus/is","7.2.0",1,1],["@speed-highlight/core","1.2.15",1,1],["@types/chai","5.2.3",1,1],["@types/deep-eql","4.0.2",1,1],["@types/estree","1.0.9",1,1],["@types/gensync","1.0.5",0,1],["@types/jsesc","2.5.1",0,1],["@types/react-dom","19.3.0",1,1],["@types/react","19.3.0",1,1],["@typescript/typescript-aix-ppc64","7.0.2",1,1],["@typescript/typescript-darwin-arm64","7.0.2",1,1],["@typescript/typescript-darwin-x64","7.0.2",1,1],["@typescript/typescript-freebsd-arm64","7.0.2",1,1],["@typescript/typescript-freebsd-x64","7.0.2",1,1],["@typescript/typescript-linux-arm64","7.0.2",1,1],["@typescript/typescript-linux-arm","7.0.2",1,1],["@typescript/typescript-linux-loong64","7.0.2",1,1],["@typescript/typescript-linux-mips64el","7.0.2",1,1],["@typescript/typescript-linux-ppc64","7.0.2",1,1],["@typescript/typescript-linux-riscv64","7.0.2",1,1],["@typescript/typescript-linux-s390x","7.0.2",1,1],["@typescript/typescript-linux-x64","7.0.2",1,1],["@typescript/typescript-netbsd-arm64","7.0.2",1,1],["@typescript/typescript-netbsd-x64","7.0.2",1,1],["@typescript/typescript-openbsd-arm64","7.0.2",1,1],["@typescript/typescript-openbsd-x64","7.0.2",1,1],["@typescript/typescript-sunos-x64","7.0.2",1,1],["@typescript/typescript-win32-arm64","7.0.2",1,1],["@typescript/typescript-win32-x64","7.0.2",1,1],["@vitejs/plugin-react","6.1.2",1,1],["@vitest/mocker","5.0.5",1,1],["@vitest/mocker","5.0.5",1,1],["@vitest/spy","5.0.5",1,1],["accepts","2.0.0",0,1],["acorn","8.16.0",1,1],["agents","0.28.1",0,1],["ajv-formats","3.0.1",0,1],["ajv","8.20.0",0,1],["any-promise","1.3.0",1,1],["assertion-error","2.0.1",1,1],["baseline-browser-mapping","2.11.23",0,1],["blake3-wasm","2.1.5",1,1],["body-parser","2.3.0",0,1],["browserslist","4.28.9",0,1],["bundle-require","5.1.0",1,1],["bytes","3.1.2",0,1],["cac","7.1.0",1,1],["call-bind-apply-helpers","1.0.2",0,1],["call-bound","1.0.4",0,1],["caniuse-lite","1.0.30001810",0,1],["capnweb","0.12.0",0,1],["chai","6.3.0",1,1],["chokidar","5.0.0",1,1],["commander","4.1.1",1,1],["confbox","0.1.8",1,1],["consola","3.4.2",1,1],["content-disposition","1.1.0",0,1],["content-type","1.0.5",0,1],["content-type","2.1.0",0,1],["convert-source-map","2.0.0",0,1],["cookie-signature","1.2.2",0,1],["cookie","0.7.2",0,1],["cookie","1.1.1",1,1],["core-js-pure","3.50.0",0,1],["cors","2.8.6",0,1],["cron-schedule","6.0.0",0,1],["cross-spawn","7.0.6",0,1],["csstype","3.2.3",1,1],["debug","4.4.3",0,1],["depd","2.0.0",0,1],["detect-libc","2.1.2",0,1],["dunder-proto","1.0.1",0,1],["ee-first","1.1.1",0,1],["electron-to-chromium","1.5.428",0,1],["empathic","2.0.1",0,1],["encodeurl","2.0.0",0,1],["error-stack-parser-es","1.0.5",1,1],["es-define-property","1.0.1",0,1],["es-errors","1.3.0",0,1],["es-module-lexer","2.3.2",1,1],["es-object-atoms","1.1.2",0,1],["esbuild","0.28.1",0,1],["esbuild","0.28.2",1,1],["escalade","3.2.0",0,1],["escape-html","1.0.3",0,1],["estree-walker","3.0.3",1,1],["etag","1.8.1",0,1],["event-target-polyfill","0.0.4",0,1],["eventsource-parser","3.1.1",0,1],["eventsource","3.0.7",0,1],["expect-type","1.4.0",1,1],["express-rate-limit","8.7.0",0,1],["express","5.2.1",0,1],["fast-deep-equal","3.1.3",0,1],["fast-uri","3.1.8",0,1],["fdir","6.5.0",0,1],["finalhandler","2.1.1",0,1],["fix-dts-default-cjs-exports","1.0.1",1,1],["forwarded","0.2.0",0,1],["fresh","2.0.0",0,1],["fsevents","2.3.3",0,1],["function-bind","1.1.2",0,1],["gensync","1.0.0-beta.2",0,1],["get-intrinsic","1.3.0",0,1],["get-proto","1.0.1",0,1],["gopd","1.2.0",0,1],["has-symbols","1.1.0",0,1],["hasown","2.0.4",0,1],["hono","4.13.8",0,1],["http-errors","2.0.1",0,1],["iconv-lite","0.7.3",0,1],["import-meta-resolve","4.2.0",0,1],["inherits","2.0.4",0,1],["ip-address","10.7.1",0,1],["ipaddr.js","1.9.1",0,1],["is-promise","4.0.0",0,1],["isexe","2.0.0",0,1],["jose","6.2.12",0,1],["joycon","3.1.1",1,1],["js-base64","3.9.3",0,1],["js-tokens","10.0.0",0,1],["jsesc","3.1.0",0,1],["json-schema-traverse","1.0.0",0,1],["json-schema-typed","8.0.2",0,1],["json5","2.2.3",0,1],["kleur","4.1.5",1,1],["lightningcss-android-arm64","1.33.0",0,1],["lightningcss-darwin-arm64","1.33.0",0,1],["lightningcss-darwin-x64","1.33.0",0,1],["lightningcss-freebsd-x64","1.33.0",0,1],["lightningcss-linux-arm-gnueabihf","1.33.0",0,1],["lightningcss-linux-arm64-gnu","1.33.0",0,1],["lightningcss-linux-arm64-musl","1.33.0",0,1],["lightningcss-linux-x64-gnu","1.33.0",0,1],["lightningcss-linux-x64-musl","1.33.0",0,1],["lightningcss-win32-arm64-msvc","1.33.0",0,1],["lightningcss-win32-x64-msvc","1.33.0",0,1],["lightningcss","1.33.0",0,1],["lilconfig","3.1.3",1,1],["lines-and-columns","1.2.4",1,1],["load-tsconfig","0.2.5",1,1],["lru-cache","11.5.2",0,1],["magic-string","0.30.21",1,1],["magic-string","1.4.3",1,1],["math-intrinsics","1.1.0",0,1],["media-typer","1.1.1",0,1],["merge-descriptors","2.0.0",0,1],["mime-db","1.52.0",0,1],["mime-db","1.54.0",0,1],["mime-types","2.1.35",0,1],["mime-types","3.0.2",0,1],["mimetext","3.0.28",0,1],["miniflare","5.20261012.1-beta",1,1],["mlly","1.8.2",1,1],["ms","2.1.3",0,1],["mz","2.7.0",1,1],["nanoid","3.3.20",0,1],["nanoid","5.1.16",0,1],["negotiator","1.1.0",0,1],["node-releases","2.0.55",0,1],["object-assign","4.1.1",0,1],["object-inspect","1.13.4",0,1],["obug","2.2.1",0,1],["obug","3.0.0",1,1],["on-finished","2.4.1",0,1],["once","1.4.0",0,1],["parseurl","1.3.3",0,1],["partysocket","1.3.0",0,1],["path-key","3.1.1",0,1],["path-to-regexp","6.3.0",1,1],["path-to-regexp","8.4.2",0,1],["pathe","2.0.3",1,1],["picocolors","1.1.1",0,1],["picomatch","4.0.7",0,1],["pirates","4.0.7",1,1],["pkce-challenge","5.0.1",0,1],["pkg-types","1.3.1",1,1],["postal-mime","2.7.6",0,1],["postcss-load-config","6.0.1",1,1],["postcss","8.5.30",0,1],["proxy-addr","2.0.8",0,1],["qs","6.16.0",0,1],["range-parser","1.3.0",0,1],["raw-body","3.0.2",0,1],["react-dom","19.3.1",0,1],["react","19.3.1",0,1],["readdirp","5.1.1",1,1],["require-from-string","2.0.2",0,1],["resolve-from","5.0.0",1,1],["rolldown","1.2.14",0,1],["rollup","4.64.10",1,1],["router","2.2.0",0,1],["safer-buffer","2.1.2",0,1],["scheduler","0.28.0",0,1],["semver","7.8.5",1,1],["send","1.2.1",0,1],["serve-static","2.2.1",0,1],["setprototypeof","1.2.0",0,1],["sharp","0.35.5",1,1],["shebang-command","2.0.0",0,1],["shebang-regex","3.0.0",0,1],["side-channel-list","1.0.1",0,1],["side-channel-map","1.0.1",0,1],["side-channel-weakmap","1.0.2",0,1],["side-channel","1.1.1",0,1],["source-map-js","1.2.2",0,1],["statuses","2.0.2",0,1],["std-env","4.3.0",1,1],["sucrase","3.35.1",1,1],["supports-color","10.2.2",0,1],["thenify-all","1.6.0",1,1],["thenify","3.3.1",1,1],["tinybench","6.2.2",1,1],["tinyexec","1.3.1",1,1],["tinyglobby","0.2.17",0,1],["toidentifier","1.0.1",0,1],["tree-kill","1.2.2",1,1],["ts-interface-checker","0.1.13",1,1],["tslib","2.8.1",1,1],["tsup","9.0.0",1,1],["type-is","2.1.0",0,1],["typescript","7.0.2",1,1],["ufo","1.6.3",1,1],["undici","7.29.1",1,1],["unenv","2.0.0-rc.24",1,1],["unpipe","1.0.0",0,1],["update-browserslist-db","1.3.3",0,1],["vary","1.1.2",0,1],["verkit","0.3.2",0,1],["vite","8.3.4",0,1],["vite","8.3.4",1,1],["vitest","5.0.5",1,1],["vitest","5.0.5",1,1],["which","2.0.2",0,1],["why-is-node-running","3.2.1",1,1],["workerd","1.20261012.1",1,1],["wrangler","4.151.1",1,1],["wrappy","1.0.2",0,1],["ws","8.21.0",1,1],["yaml","2.9.1",0,1],["youch-core","0.3.3",1,1],["youch","4.1.0-beta.10",1,1],["zod-to-json-schema","3.25.2",0,1],["zod","4.6.7",0,1]],"edges":[[0,26],[0,43],[0,135],[0,190],[0,191],[0,212],[0,218],[0,367],[0,368],[0,402],[0,404],[0,412],[0,414],[0,415],[0,419],[0,426],[1,15],[1,303],[3,1],[3,4],[3,6],[3,17],[3,18],[3,23],[3,24],[3,25],[3,188],[3,242],[3,257],[3,285],[3,294],[3,307],[3,345],[3,411],[4,18],[4,25],[4,127],[4,130],[4,189],[4,304],[5,25],[6,2],[6,16],[6,226],[6,324],[6,411],[7,3],[7,5],[7,9],[7,10],[7,12],[7,13],[7,24],[7,411],[9,24],[9,25],[10,25],[11,3],[12,3],[12,9],[12,10],[12,24],[13,24],[13,25],[17,23],[17,25],[18,25],[19,3],[19,7],[19,11],[19,20],[20,3],[20,11],[21,246],[23,1],[23,18],[23,25],[24,1],[24,4],[24,8],[24,18],[24,23],[24,25],[24,345],[25,14],[25,15],[26,27],[26,28],[26,29],[26,30],[26,31],[26,32],[26,33],[26,34],[37,407],[37,418],[44,131],[45,401],[98,291],[100,103],[101,104],[102,121],[113,105],[114,106],[115,107],[116,108],[117,109],[118,110],[119,111],[120,112],[121,45],[122,121],[126,129],[126,130],[127,129],[127,130],[130,128],[130,129],[131,128],[131,129],[132,133],[132,249],[132,271],[132,272],[132,300],[132,358],[132,426],[133,426],[134,35],[134,98],[134,219],[134,220],[134,240],[134,247],[134,249],[134,271],[134,272],[134,274],[134,275],[134,291],[134,300],[134,306],[134,358],[134,366],[134,425],[134,426],[135,133],[135,426],[138,308],[139,138],[139,183],[139,392],[156,3],[156,22],[156,356],[156,372],[156,412],[185,186],[185,222],[190,191],[191,250],[212,156],[212,157],[212,412],[213,130],[213,215],[213,268],[213,326],[213,412],[214,130],[214,215],[214,268],[214,326],[214,413],[216,333],[216,341],[218,19],[218,35],[218,132],[218,134],[218,135],[218,156],[218,233],[218,248],[218,264],[218,334],[218,340],[218,350],[218,360],[218,368],[218,412],[218,422],[218,426],[219,220],[220,276],[220,277],[220,305],[220,370],[225,228],[225,241],[225,251],[225,292],[225,293],[225,347],[225,364],[225,366],[225,403],[226,223],[226,232],[226,256],[226,342],[226,409],[227,265],[227,323],[230,261],[230,284],[231,230],[231,286],[235,369],[247,343],[247,410],[249,351],[249,382],[249,416],[251,337],[251,392],[254,230],[254,261],[254,288],[263,261],[264,46],[264,48],[264,50],[264,52],[264,54],[264,56],[264,58],[264,60],[264,62],[264,64],[264,66],[264,68],[264,70],[264,72],[264,74],[264,76],[264,78],[264,80],[264,82],[264,84],[264,86],[264,88],[264,90],[264,92],[264,94],[264,96],[265,47],[265,49],[265,51],[265,53],[265,55],[265,57],[265,59],[265,61],[265,63],[265,65],[265,67],[265,69],[265,71],[265,73],[265,75],[265,77],[265,79],[265,81],[265,83],[265,85],[265,87],[265,89],[265,91],[265,93],[265,95],[265,97],[268,187],[272,271],[274,251],[274,275],[274,296],[275,216],[275,225],[275,239],[275,240],[275,243],[275,244],[275,251],[275,252],[275,258],[275,267],[275,269],[275,279],[275,282],[275,292],[275,329],[275,333],[275,347],[275,348],[275,349],[275,363],[275,364],[275,365],[275,374],[275,378],[275,379],[275,389],[275,403],[275,410],[278,356],[279,251],[279,258],[279,267],[279,347],[279,349],[279,389],[280,325],[280,336],[280,373],[286,230],[286,260],[286,261],[286,263],[286,284],[286,287],[286,288],[286,289],[286,290],[286,327],[287,254],[287,263],[290,284],[292,252],[292,295],[292,380],[292,389],[292,398],[293,375],[320,253],[320,309],[320,310],[320,311],[320,312],[320,313],[320,314],[320,315],[320,316],[320,317],[320,318],[320,319],[325,129],[326,129],[332,330],[333,331],[334,21],[334,22],[334,302],[334,332],[335,44],[335,381],[335,406],[335,418],[335,421],[335,424],[336,217],[336,354],[336,359],[336,405],[338,221],[338,343],[338,393],[341,241],[347,255],[348,420],[350,270],[350,368],[359,237],[359,336],[359,354],[361,321],[361,362],[361,422],[362,339],[362,355],[362,388],[363,281],[363,297],[364,260],[364,387],[366,228],[366,292],[366,293],[366,408],[367,368],[367,376],[372,137],[372,141],[372,142],[372,143],[372,144],[372,145],[372,146],[372,147],[372,148],[372,149],[372,150],[372,151],[372,152],[372,153],[372,154],[372,155],[372,157],[373,136],[373,158],[373,159],[373,160],[373,161],[373,162],[373,163],[373,164],[373,165],[373,166],[373,167],[373,168],[373,169],[373,170],[373,171],[373,172],[373,173],[373,174],[373,175],[373,176],[373,177],[373,178],[373,179],[373,180],[373,181],[373,182],[373,187],[373,283],[374,251],[374,252],[374,298],[374,349],[374,353],[378,251],[378,258],[378,267],[378,269],[378,282],[378,292],[378,333],[378,337],[378,347],[378,365],[378,389],[379,258],[379,267],[379,349],[379,378],[381,99],[381,100],[381,101],[381,102],[381,103],[381,104],[381,105],[381,106],[381,107],[381,108],[381,109],[381,110],[381,111],[381,112],[381,113],[381,114],[381,115],[381,116],[381,117],[381,118],[381,119],[381,120],[381,122],[381,123],[381,124],[381,125],[381,253],[381,377],[382,383],[384,261],[384,344],[385,231],[385,261],[385,286],[385,344],[386,231],[386,261],[386,286],[386,344],[386,385],[387,261],[387,344],[387,384],[387,385],[387,386],[391,126],[391,236],[391,322],[391,338],[391,357],[391,397],[391,400],[393,394],[394,221],[397,278],[397,356],[402,227],[402,229],[402,235],[402,238],[402,265],[402,280],[402,301],[402,346],[402,355],[402,361],[402,362],[402,371],[402,373],[402,388],[402,391],[402,396],[402,397],[402,399],[402,404],[403,241],[403,328],[403,333],[404,192],[404,193],[404,194],[404,195],[404,196],[404,197],[404,198],[404,199],[404,200],[404,201],[404,202],[404,203],[404,204],[404,205],[404,206],[404,207],[404,208],[404,209],[404,210],[404,211],[407,354],[409,226],[409,266],[409,355],[412,264],[412,283],[412,320],[412,356],[412,362],[412,372],[412,397],[412,422],[413,265],[413,283],[413,320],[413,356],[413,362],[413,372],[413,397],[413,422],[414,185],[414,213],[414,234],[414,262],[414,273],[414,326],[414,346],[414,356],[414,390],[414,395],[414,396],[414,397],[414,412],[414,417],[415,185],[415,214],[415,234],[415,262],[415,273],[415,326],[415,346],[415,356],[415,390],[415,395],[415,396],[415,397],[415,413],[415,417],[416,299],[418,38],[418,39],[418,40],[418,41],[418,42],[419,36],[419,37],[419,43],[419,224],[419,265],[419,283],[419,335],[419,352],[419,407],[419,418],[423,140],[423,259],[424,138],[424,139],[424,184],[424,245],[424,423],[425,426]],"frames":"////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////6Ojo6Ojo+ujo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojr6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6+jo6Ojo6Ojz6PDo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Oj66Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6PPo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo1NTU1NTU9tTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTZ1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU2dTU1NTU1NTp1OPU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NT21NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1OnU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTUwcHBwcHB8sHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHJwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBycHBwcHBwcHhwdjBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHywcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBweHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBsLCwsLCw77CwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLC6sLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwurCwsLCwsLDZsM+wsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDvsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsNmwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwoKCgoKCg7KCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCsoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgrKCgoKCgoKDToMegoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKDsoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoNOgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgkpKSkpKS6pKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKgkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSoJKSkpKSkpLNksCSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpLqkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSks2SkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKSkpKShYWFhYWF6IWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWUhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFlIWFhYWFhYXIhbqFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYXohYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhciFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFeXl5eXl553l5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXmKeXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5inl5eXl5eXnEebZ5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXnneXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5ecR5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5b29vb29v5m9vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb2+Ab29vb29vb29vb29vb29vb29vb29vb29vb29vb29vgG9vb29vb2/Bb7Nvb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb2/mb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb8Fvb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vb29vZWVlZWVl5WVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWV3ZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVld2VlZWVlZWW+ZbBlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWXlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZb5lZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlXFxcXFxc5FxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxuXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcblxcXFxcXFy8XK5cXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFzkXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXLxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcVFRUVFRU41RUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRmVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUZlRUVFRUVFS6VK1UVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFTjVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVLpUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUTExMTExM4kxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExfTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMX0xMTExMTEy4TKxMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEziTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTLhMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMRkZGRkZG4kZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZYRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGWEZGRkZGRka3RqxGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkbiRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRrdGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGPz8/Pz8/4j8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz9RPz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/UT8/Pz8/Pz+1P6s/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz/iPz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/P7U/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Ojo6Ojo64To6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6OjpLOjo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Szo6Ojo6Ojq0Oqw6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6OjrhOjo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6OrQ6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6Ojo6NTU1NTU14TU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTVFNTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1RTU1NTU1NTW0Naw1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTXhNTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NbQ1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1MDAwMDAw4TAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDBAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwQDAwMDAwMDCzMKwwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDDhMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMLMwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwLCwsLCws4CwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCw7LCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsOywsLCwsLCyyLK0sLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCzgLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLLIsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsKCgoKCgo4CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCg2KCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoNigoKCgoKCiyKK0oKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCjgKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKLIoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoJCQkJCQk4CQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQxJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkMSQkJCQkJCSxJK4kJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCTgJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJLEkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkISEhISEh4CEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEtISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhLSEhISEhISGxIa8hISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISHgISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhIbEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhHh4eHh4e4B4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4qHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eKh4eHh4eHh6xHq8eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7gHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHrEeHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eGxsbGxsb4BsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsmGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbJhsbGxsbGxuxG7AbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxvgGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbG7EbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGxsbGRkZGRkZ4BkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkjGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZIxkZGRkZGRmwGbAZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRngGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGbAZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZFxcXFxcX4BcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcgFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXIBcXFxcXFxewF7EXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxfgFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXF7AXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFRUVFRUV4BUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUdFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVHRUVFRUVFRWwFbEVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRXgFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFbAVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVExMTExMT4BMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMbExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTGxMTExMTExOwE7ETExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExPgExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE7ATExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTERERERER4BEREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREYERERERERERERERERERERERERERERERERERERERERGBERERERERGwEbIRERERERERERERERERERERERERERERERERERERERERERERERERERHgEREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREbAREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREREBAQEBAQ4BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAWEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQFhAQEBAQEBCwELIQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBDgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQELAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQDg4ODg4O4A4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4UDg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4OFA4ODg4ODg6wDrIODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg7gDg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODrAODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODQ0NDQ0N4A0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0TDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NEw0NDQ0NDQ2wDbMNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ3gDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDbANDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDAwMDAwM4AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwRDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMEQwMDAwMDAywDLMMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAzgDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDLAMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCwsLCwsL4AsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsPCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLDwsLCwsLCwuwC7MLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwvgCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLC7ALCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCgoKCgoK3woKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoOCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKDgoKCgoKCgqwCrMKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgrfCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCrAKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCQkJCQkJ3wkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkNCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJDQkJCQkJCQmwCbMJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQnfCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCbAJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCAgICAgI3wgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgMCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDAgICAgICAiwCLMICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAjfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICLAICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBwcHBwcH3wcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcLBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHCwcHBwcHBwewB7QHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwffBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHB7AHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcH3wcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcKBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHCgcHBwcHBwewB7QHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwffBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHB7AHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBgYGBgYG3wYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYJBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGCQYGBgYGBgawBrQGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgbfBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBrAGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYG3wYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYIBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGCAYGBgYGBgawBrQGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgbfBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBrAGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBQUFBQUF3wUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUHBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBwUFBQUFBQWwBbQFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQXfBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBbAFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUF3wUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUHBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBwUFBQUFBQWwBbQFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQXfBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBbAFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUF","frameCount":44,"steps":129,"converged":129,"gamma":1.8,"food":[{"node":291,"w":0.53,"fixed":"4.13.11","closedAt":0,"label":"MODERATE","count":1,"top":{"id":"GHSA-5r4p-p66f-jhc7","summary":"Hono: `serveStatic` decodes the request path a second time, leading to bypass of middleware on static paths"}},{"node":296,"w":0.5,"fixed":"10.7.4","closedAt":0,"label":"MODERATE","count":1,"top":{"id":"GHSA-rxp7-6hxx-x8q5","summary":"ip-address: Address6 matches a zone identifier in quadratic time ahead of its length limit, allowing a single long strin"}}],"acts":[{"root":218,"name":"agents","version":"0.28.1","coverage":1,"items":[{"name":"hono","version":"4.13.8","fixed":"4.13.11","label":"MODERATE","count":1,"shared":[]},{"name":"ip-address","version":"10.7.1","fixed":"10.7.4","label":"MODERATE","count":1,"shared":[]}]}],"sealedAt":[-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,0,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],"state":{"min":0.92,"key":"closed","label":"CLOSED","note":"healthy"},"coverage":1,"fixable":1,"unfixed":[],"script":{"dependencies":{},"overrides":{"agents":{"hono":"^4.13.11","ip-address":"^10.7.4"}}},"majors":[]}</script>
+<!-- data-cfasync="false": when served behind Cloudflare, Rocket Loader would otherwise
+     rewrite this into a deferred script that its loader (blocked by the CSP above) never runs. -->
+<script data-cfasync="false">
+(() => {
+'use strict';
+const S = JSON.parse(document.getElementById('stage-data').textContent);
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── data ─────────────────────────────────────────────────────────── */
+const N = S.nodes.length, E = S.edges, M = E.length;
+const raw = Uint8Array.from(atob(S.frames), (ch) => ch.charCodeAt(0));
+const FC = S.frameCount;
+const Dat = (f, e) => { const b = raw[f * M + e] / 255; return b * b; };
+const foodOf = new Map(S.food.map((f, i) => [f.node, i]));
+const wmax = Math.max(1e-9, ...S.food.map((f) => f.w));
+
+/* ── layout: a radial rail map, project at the heart ─────────────── */
+const kids = Array.from({ length: N }, () => []), parents = Array.from({ length: N }, () => []);
+E.forEach(([a, b], i) => { kids[a].push([b, i]); parents[b].push([a, i]); });
+const depth = new Int32Array(N).fill(-1); depth[0] = 0;
+const order = [0];
+for (let q = 0; q < order.length; q++) for (const [b] of kids[order[q]]) if (depth[b] < 0) { depth[b] = depth[order[q]] + 1; order.push(b); }
+const maxDepth = Math.max(1, ...depth);
+const finalD = (e) => Dat(FC - 1, e);
+// Tree parent: the shallowest parent, preferring the tube the organism kept.
+const tparent = new Int32Array(N).fill(-1);
+for (let v = 1; v < N; v++) {
+  let best = -1, bestD = -1;
+  for (const [p, e] of parents[v]) if (depth[p] === depth[v] - 1 && finalD(e) > bestD) { best = p; bestD = finalD(e); }
+  tparent[v] = best;
+}
+const tkids = Array.from({ length: N }, () => []);
+for (let v = 1; v < N; v++) if (tparent[v] >= 0) tkids[tparent[v]].push(v);
+const leaves = new Float64Array(N);
+for (let i = order.length - 1; i >= 0; i--) {
+  const v = order[i];
+  leaves[v] = tkids[v].length ? tkids[v].reduce((s, k) => s + leaves[k], 0) : 1;
+  // food gets a little more room so its labels breathe
+  if (foodOf.has(v)) leaves[v] += 0.6;
+}
+const ang = new Float64Array(N);
+(function place(v, a0, a1) {
+  ang[v] = (a0 + a1) / 2;
+  // interleave large and small subtrees so heavy branches don't cluster
+  const ks = tkids[v].slice().sort((x, y) => leaves[y] - leaves[x]);
+  const arranged = []; ks.forEach((k, i) => (i % 2 ? arranged.push(k) : arranged.unshift(k)));
+  const wt = (k) => Math.pow(leaves[k], 0.55);
+  const tot = arranged.reduce((s, k) => s + wt(k), 0) || 1;
+  let a = a0;
+  for (const k of arranged) { const span = (a1 - a0) * wt(k) / tot; place(k, a, a + span); a += span; }
+})(0, -Math.PI / 2, Math.PI * 1.5);
+
+// deterministic organic jitter
+const hash = (i, s) => { let x = Math.imul(i + 1, 0x9e3779b1) ^ Math.imul(s + 3, 0x85ebca77); x ^= x >>> 15; x = Math.imul(x, 0x2c1b3c6d); x ^= x >>> 12; return ((x >>> 0) % 10000) / 10000; };
+
+let W = 0, H = 0, DPR = 1, cx = 0, cy = 0, R = 0;
+const px = new Float64Array(N), py = new Float64Array(N);
+const curve = new Array(M);
+const cv = $('c'), ctx = cv.getContext('2d');
+function layout() {
+  const r = cv.getBoundingClientRect();
+  W = r.width; H = r.height; DPR = Math.min(devicePixelRatio || 1, 2);
+  cv.width = Math.max(1, W * DPR); cv.height = Math.max(1, H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  cx = W * 0.5; cy = H * 0.53; R = Math.min(W * 0.44, H * 0.43);
+  const ring = (d) => R * (0.18 + 0.82 * Math.pow((d - 1) / Math.max(1, maxDepth - 1), 0.85));
+  for (let v = 0; v < N; v++) {
+    if (depth[v] < 0) { px[v] = -9999; py[v] = -9999; continue; }
+    const rr = v === 0 ? 0 : ring(depth[v]) + (hash(v, 1) - 0.5) * (R / maxDepth) * 0.5;
+    const aa = ang[v] + (hash(v, 2) - 0.5) * 0.03;
+    px[v] = cx + Math.cos(aa) * rr; py[v] = cy + Math.sin(aa) * rr;
+  }
+  for (let e = 0; e < M; e++) {
+    const [a, b] = E[e];
+    const ra = Math.hypot(px[a] - cx, py[a] - cy), rb = Math.hypot(px[b] - cx, py[b] - cy);
+    const aa = Math.atan2(py[a] - cy, px[a] - cx), ab = Math.atan2(py[b] - cy, px[b] - cx);
+    const rm = (ra + rb) / 2;
+    const c1 = a === 0 ? [cx + Math.cos(ab) * rb * 0.35, cy + Math.sin(ab) * rb * 0.35] : [cx + Math.cos(aa) * rm, cy + Math.sin(aa) * rm];
+    const c2 = [cx + Math.cos(ab) * rm, cy + Math.sin(ab) * rm];
+    curve[e] = [px[a], py[a], c1[0], c1[1], c2[0], c2[1], px[b], py[b]];
+  }
+  rings = Array.from({ length: maxDepth }, (_, i) => ring(i + 1));
+}
+let rings = [];
+const bez = (c, t) => { const u = 1 - t; return [u*u*u*c[0] + 3*u*u*t*c[2] + 3*u*t*t*c[4] + t*t*t*c[6], u*u*u*c[1] + 3*u*u*t*c[3] + 3*u*t*t*c[5] + t*t*t*c[7]]; };
+
+/* ── the score: when each thing happens ──────────────────────────── */
+const T_OVER = 2.2, T_GROW = 9.5, T_ACT = 2.4, T_CODA = 4.5;
+const nActs = S.acts.length;
+const tGrow0 = T_OVER, tRit0 = T_OVER + T_GROW, tCoda0 = tRit0 + nActs * T_ACT, TOTAL = tCoda0 + T_CODA;
+const ease = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+
+function sceneAt(t) {
+  const gp = clamp01((t - tGrow0) / T_GROW);
+  const pos = ease(gp) * (FC - 1);
+  const actF = (t - tRit0) / T_ACT;                 // fractional act index
+  const actsDone = t < tRit0 ? -1 : Math.min(nActs - 1, Math.floor(actF));
+  const actProg = t < tRit0 ? 0 : actF >= nActs ? 1 : actF - Math.floor(actF);
+  return { t, gp, pos, actsDone, actProg, coda: t >= tCoda0, over: clamp01(t / T_OVER) };
+}
+const Dnow = (sc, e) => {
+  if (sc.t < tGrow0) return 1;
+  const i0 = Math.floor(sc.pos), i1 = Math.min(FC - 1, i0 + 1), k = sc.pos - i0;
+  return Dat(i0, e) * (1 - k) + Dat(i1, e) * k;
+};
+// sealing progress of a tube: 0 = live vein, 1 = gold seam
+function sealOf(sc, e) {
+  const s = S.sealedAt[e];
+  if (s == null || s < 0 || sc.actsDone < 0) return 0;
+  if (s < sc.actsDone) return 1;
+  if (s > sc.actsDone) return 0;
+  // lacquer runs outward from the heart: shallow tubes first
+  const d = depth[E[e][0]] / maxDepth;
+  return clamp01((sc.actProg - 0.12 - d * 0.55) / 0.25);
+}
+const closedP = (sc, fi) => {
+  const c = S.food[fi].closedAt;
+  if (c == null || sc.actsDone < 0) return 0;
+  return c < sc.actsDone ? 1 : c > sc.actsDone ? 0 : clamp01((sc.actProg - 0.55) / 0.3);
+};
+
+/* ── particles: current flowing home ─────────────────────────────── */
+const parts = [];
+const BUDGET = reduce ? 0 : Math.min(900, 120 + M * 2);
+for (let i = 0; i < BUDGET; i++) parts.push({ e: (hash(i, 9) * M) | 0, t: hash(i, 11), v: 0.12 + hash(i, 12) * 0.25 });
+
+/* ── drawing ─────────────────────────────────────────────────────── */
+const GOLD = [205, 162, 78], BRIGHT = [230, 196, 120], TEAL = [92, 207, 207], CORAL = [240, 113, 120];
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const mix = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
+let hover = -1, lastT = performance.now();
+
+function draw(sc, dt) {
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = '#0b0e15'; ctx.fillRect(0, 0, W, H);
+  // agar: depth rings, labelled like a survey plate
+  ctx.lineWidth = 1;
+  rings.forEach((r, i) => {
+    ctx.strokeStyle = `rgba(205,162,78,${0.05 * sc.over})`;
+    ctx.setLineDash([2, 6]); ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.2832); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = `rgba(138,111,51,${0.5 * sc.over})`; ctx.font = '9px "DM Mono", monospace'; ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+    if (i === 0 || i === rings.length - 1 || i % 2 === 0) ctx.fillText(`depth ${i + 1}`, cx - r * 0.74 - 4, cy + r * 0.67 + 3);
+  });
+
+  // tubes
+  const grow = sc.t >= tGrow0;
+  for (let pass = 0; pass < 2; pass++) {
+    ctx.globalCompositeOperation = pass ? 'lighter' : 'source-over';
+    for (let e = 0; e < M; e++) {
+      const [a] = E[e]; if (depth[a] < 0) continue;
+      const d = Dnow(sc, e) * (grow ? 1 : sc.over);
+      const seal = sealOf(sc, e);
+      const ghost = 0.035 * sc.over;
+      let alpha = Math.max(ghost, Math.min(0.92, 0.05 + Math.sqrt(d) * 0.85));
+      if (!grow) alpha = 0.06 + 0.22 * sc.over;
+      if (alpha < 0.03 && seal === 0) continue;
+      let col = mix(GOLD, BRIGHT, Math.min(1, d * 1.4));
+      const unfixed = S.sealedAt[e] === null && sc.coda;
+      if (unfixed) col = mix(col, CORAL, 0.55);
+      let wdt = 0.35 + Math.sqrt(d) * 5.2;
+      if (seal > 0) { col = mix(col, BRIGHT, seal); wdt = wdt * (1 - seal) + (1.6 + Math.sqrt(d) * 1.4) * seal; alpha = alpha * (1 - seal) + 0.95 * seal; }
+      const c = curve[e];
+      if (pass === 0) {
+        ctx.strokeStyle = rgba(col, alpha); ctx.lineWidth = wdt;
+      } else {
+        if (d < 0.08 && seal === 0) continue;
+        ctx.strokeStyle = rgba(col, (seal > 0 ? 0.16 * seal + 0.06 : 0.07) * Math.min(1, d * 3 + seal));
+        ctx.lineWidth = wdt * 3.4 + seal * 4;
+      }
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(c[0], c[1]); ctx.bezierCurveTo(c[2], c[3], c[4], c[5], c[6], c[7]); ctx.stroke();
+    }
+  }
+
+  // current: particles drift from food toward the heart along live veins
+  if (grow && BUDGET) {
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of parts) {
+      let d = Dnow(sc, p.e), s = sealOf(sc, p.e);
+      if (d < 0.06 || s > 0.5) { p.e = (Math.random() * M) | 0; p.t = Math.random(); continue; }
+      p.t -= dt * p.v * (0.5 + d * 1.6);
+      if (p.t <= 0) {
+        // hop to a parent tube so the current keeps travelling home
+        const a = E[p.e][0]; const ups = parents[a];
+        if (a !== 0 && ups.length) { const pick = ups.reduce((m, x) => (Dnow(sc, x[1]) > Dnow(sc, m[1]) ? x : m)); p.e = pick[1]; p.t = 1; }
+        else { p.e = (Math.random() * M) | 0; p.t = 1; }
+        continue;
+      }
+      const [x, y] = bez(curve[p.e], p.t);
+      const unfixed = S.sealedAt[p.e] === null && sc.coda;
+      ctx.fillStyle = unfixed ? 'rgba(240,113,120,.9)' : 'rgba(240,214,150,.9)';
+      ctx.beginPath(); ctx.arc(x, y, 0.9 + d * 1.3, 0, 6.2832); ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // dust: every package, faint
+  ctx.fillStyle = `rgba(196,189,171,${0.22 * sc.over})`;
+  for (let v = 1; v < N; v++) if (depth[v] > 0 && !foodOf.has(v)) { ctx.fillRect(px[v] - 0.7, py[v] - 0.7, 1.4, 1.4); }
+
+  // food: vulnerable packages, pulsing until closed
+  const now = sc.t;
+  S.food.forEach((f, fi) => {
+    const v = f.node; if (depth[v] < 0) return;
+    const k = closedP(sc, fi), r = 2.6 + (f.w / wmax) * 5.5;
+    const pulse = reduce ? 0 : (Math.sin(now * 3.1 + fi * 1.7) + 1) / 2;
+    const appear = clamp01((sc.t - 0.3 - fi * 0.04) / 0.8);
+    if (appear <= 0) return;
+    const sev = f.fixed ? mix(CORAL, BRIGHT, 0.25) : CORAL;
+    const col = mix(sev, TEAL, k);
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(px[v], py[v], 0, px[v], py[v], r * (3.2 + pulse * (1 - k) * 1.6));
+    g.addColorStop(0, rgba(col, 0.45 * appear)); g.addColorStop(1, rgba(col, 0));
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px[v], py[v], r * 5, 0, 6.2832); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = rgba(col, appear); ctx.beginPath(); ctx.arc(px[v], py[v], r * (1 - k * 0.35), 0, 6.2832); ctx.fill();
+    if (k > 0) { ctx.strokeStyle = rgba(BRIGHT, k); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(px[v], py[v], r + 3, 0, 6.2832 * k); ctx.stroke(); }
+    if (!f.fixed && sc.coda) { ctx.strokeStyle = rgba(CORAL, 0.8); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px[v] - r - 3, py[v] - r - 3); ctx.lineTo(px[v] + r + 3, py[v] + r + 3); ctx.stroke(); }
+  });
+
+  // labels: the heaviest food during growth; the act entrances during the ritual
+  ctx.font = '10.5px "DM Mono", monospace'; ctx.textBaseline = 'middle';
+  const placed = [];
+  const hit = (r) => placed.some((q) => r[0] < q[0] + q[2] && q[0] < r[0] + r[2] && r[1] < q[1] + q[3] && q[1] < r[1] + r[3]);
+  const label = (v, text, col, alpha) => {
+    const a = Math.atan2(py[v] - cy, px[v] - cx), right = Math.cos(a) >= 0;
+    const tw = ctx.measureText(text).width, x = px[v] + (right ? 10 : -10);
+    let y = py[v], rect = null;
+    for (const dy of [0, 14, -14, 28, -28, 42, -42]) {
+      const r = [right ? x - 3 : x - tw - 3, py[v] + dy - 8, tw + 6, 16];
+      if (!hit(r)) { rect = r; y = py[v] + dy; break; }
+    }
+    if (!rect) return;
+    placed.push(rect);
+    ctx.textAlign = right ? 'left' : 'right';
+    if (y !== py[v]) { ctx.strokeStyle = rgba(col, alpha * 0.35); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(px[v], py[v]); ctx.lineTo(x, y); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(11,14,21,.8)'; ctx.fillRect(rect[0], rect[1], rect[2], rect[3]);
+    ctx.fillStyle = rgba(col, alpha); ctx.fillText(text, x, y);
+  };
+  S.acts.forEach((act, i) => {
+    if (sc.actsDone < i) return;
+    const v = act.root, k = i === sc.actsDone ? clamp01(sc.actProg * 3) : 1;
+    ctx.strokeStyle = rgba(BRIGHT, k); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(px[v], py[v], 6, 0, 6.2832); ctx.stroke();
+    label(v, `${['I','II','III','IV','V','VI','VII','VIII','IX','X'][i] ?? i + 1} · ${act.name}`, BRIGHT, k);
+  });
+
+  if (sc.t > 0.8) {
+    const top = S.food.slice().sort((a, b) => b.w - a.w).slice(0, 7);
+    const a = clamp01((sc.t - 0.8) / 1) * (sc.actsDone >= 0 ? 0.55 : 1);
+    for (const f of top) label(f.node, `${S.nodes[f.node][0]} ${S.nodes[f.node][1]}`, f.fixed ? BRIGHT : CORAL, a);
+  }
+  // the heart: the compass mark
+  ctx.save(); ctx.translate(cx, cy);
+  const hb = reduce ? 0 : Math.sin(now * 2) * 0.06;
+  ctx.globalCompositeOperation = 'lighter';
+  const hg = ctx.createRadialGradient(0, 0, 0, 0, 0, 46);
+  hg.addColorStop(0, `rgba(230,196,120,${0.35 * sc.over})`); hg.addColorStop(1, 'rgba(230,196,120,0)');
+  ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, 46, 0, 6.2832); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.scale(1 + hb, 1 + hb);
+  ctx.strokeStyle = `rgba(205,162,78,${0.95 * sc.over})`; ctx.lineWidth = 1.1;
+  ctx.beginPath(); ctx.arc(0, 0, 15, 0, 6.2832); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -11); ctx.quadraticCurveTo(10, 0, 0, 11); ctx.quadraticCurveTo(-10, 0, 0, -11); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-11, 0); ctx.quadraticCurveTo(0, 10, 11, 0); ctx.quadraticCurveTo(0, -10, -11, 0); ctx.stroke();
+  ctx.fillStyle = `rgba(230,196,120,${sc.over})`; ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, 6.2832); ctx.fill();
+  ctx.restore();
+
+  if (hover >= 0) { ctx.strokeStyle = 'rgba(92,207,207,.9)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(px[hover], py[hover], 8, 0, 6.2832); ctx.stroke(); }
+}
+
+/* ── chrome: meters, surtitles, playbill ─────────────────────────── */
+const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+$('m-project').textContent = S.project.replace(/-/g, '\u2011');
+const vulnCount = S.food.length, advCount = S.food.reduce((s, f) => s + f.count, 0);
+$('m-sub').textContent = '';
+[[`${N - 1}`, ' packages · '], [`${M}`, ' tubes · '], [`${vulnCount}`, ' vulnerable']].forEach(([b, t]) => { $('m-sub').append(el('b', null, b), t); });
+$('b-date').textContent = S.meta.date;
+const cast = $('b-cast');
+const castRow = (k, v) => { cast.append(el('dt', null, k)); const dd = el('dd'); if (v instanceof Node) dd.append(v); else dd.textContent = v; cast.append(dd); };
+castRow('terrain', `${S.meta.file}`);
+castRow('food', `${vulnCount} packages · ${advCount} advisories`);
+const sevs = el('span', 'sevs'); const cnt = {};
+S.food.forEach((f) => { cnt[f.label] = (cnt[f.label] || 0) + 1; });
+['CRITICAL', 'HIGH', 'MODERATE', 'LOW'].forEach((k) => { if (cnt[k]) sevs.append(el('i', `sev-${k}`, `${cnt[k]} ${k.toLowerCase()}`)); });
+castRow('worst', sevs);
+castRow('organism', `γ ${S.gamma} · ${S.converged ? `converged at step ${S.converged}` : `${S.steps} steps`}`);
+castRow('source', 'OSV.dev advisories');
+
+const actsEl = $('b-acts'), actNodes = [];
+S.acts.forEach((a, i) => {
+  const d = el('div', 'act'), row = el('div', 'act-row');
+  row.append(el('span', 'act-n', ROMAN[i] ?? i + 1));
+  const nm = el('span', 'act-name', a.name); nm.append(el('small', null, a.version)); row.append(nm);
+  row.append(el('span', 'act-cov', `${Math.round(a.coverage * 100)}%`));
+  const bar = el('div', 'act-bar'), fill = el('i'); bar.append(fill); row.append(bar);
+  const items = el('div', 'act-items');
+  a.items.slice().sort((x, y) => (y.label === 'CRITICAL') - (x.label === 'CRITICAL')).slice(0, 4).forEach((it) => {
+    const line = el('div'); line.append(el('b', null, it.name), ` ${it.version} `);
+    if (it.fixed) line.append('→ ', el('span', 'to', it.fixed)); else line.append(el('span', 'nofix', '✕ no fix'));
+    line.append(` · ${it.count}× ${it.label.toLowerCase()}`);
+    if (it.shared.length) line.append(el('span', 'shared', ` · also via ${it.shared.join(', ')}`));
+    items.append(line);
+  });
+  if (a.items.length > 4) items.append(el('div', null, `+ ${a.items.length - 4} more`));
+  row.append(items); d.append(row); actsEl.append(d); actNodes.push([d, fill, a]);
+});
+if (!S.acts.length) actsEl.append(el('p', 'bill-p', S.food.length ? 'No entrance survived as backbone.' : 'No food. The organism rests.'));
+
+const bp = $('b-break-p');
+if (S.unfixed.length) S.unfixed.forEach((u) => { const l = el('div'); l.append(el('b', null, `${u.name} ${u.version}`), ` · ${u.id}`); bp.append(l); });
+else bp.textContent = 'Nothing unfixable. Every advisory here has a published fix.';
+if (!S.unfixed.length) $('b-break').querySelector('h3').textContent = 'No break to keep';
+
+const json = JSON.stringify(S.script, null, 2);
+$('b-json').textContent = json;
+$('b-warn').textContent = '';
+$('b-warn').append(el('b', null, 'Merge into package.json, run npm install, then your tests. '));
+if (S.majors.length) $('b-warn').append(`Major jumps (the parent may refuse): ${S.majors.join(' · ')}.`);
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(json); $('copy').textContent = 'copied'; } catch { $('copy').textContent = 'select ↓'; }
+  setTimeout(() => { $('copy').textContent = 'copy'; }, 1600);
+});
+$('b-colophon').textContent = `Every frame is a recorded solver step (Tero et al., Science 2010, adapted to directed dependencies). Coverage is the exact cut, not the organism's opinion. Generated ${S.meta.date} by theatre ${S.meta.version}.`;
+
+// scrubber ticks
+const ticks = $('ticks');
+[[0, 'overture'], [tGrow0, 'growth'], [tRit0, 'ritual'], [tCoda0, 'coda']].forEach(([t, k]) => { if (t < TOTAL) { const s = el('span', null, k); s.style.left = `${(t / TOTAL) * 100}%`; ticks.append(s); } });
+
+const STATE = (c) => c >= 0.92 ? ['closed', '● CLOSED · healthy'] : c >= 0.6 ? ['half', '◐ HALF-OPEN · thin'] : ['open', '○ OPEN · fragmented'];
+let lastLine = '', lastFocus = null;
+function surtitle(act, line) {
+  $('s-act').textContent = act;
+  if (line === lastLine) return;
+  lastLine = line;
+  const L = $('s-line'); L.classList.add('fade');
+  setTimeout(() => { L.textContent = line; L.classList.remove('fade'); }, reduce ? 0 : 280);
+}
+
+function chrome(sc) {
+  const step = sc.t < tGrow0 ? 0 : Math.round((sc.pos / Math.max(1, FC - 1)) * S.steps);
+  $('m-step').textContent = `${step} / ${S.steps}`;
+  let alive = 0; for (let e = 0; e < M; e++) if (Dnow(sc, e) >= 0.05) alive++;
+  $('m-alive').textContent = `${Math.round((alive / Math.max(1, M)) * 100)}%`;
+  let cov = 0;
+  if (sc.actsDone >= 0) {
+    const prev = sc.actsDone > 0 ? S.acts[sc.actsDone - 1].coverage : 0;
+    cov = prev + (S.acts[sc.actsDone].coverage - prev) * clamp01((sc.actProg - 0.5) / 0.4);
+  }
+  if (!S.food.length) cov = 1;
+  const big = $('m-cov'); big.firstChild.textContent = Math.round(cov * 100);
+  const [k, txt] = STATE(cov); const b = $('m-state'); b.className = `badge ${k}`; b.textContent = txt;
+  actNodes.forEach(([d, fill, a], i) => {
+    d.classList.toggle('on', sc.actsDone >= i); d.classList.toggle('now', sc.actsDone === i && !sc.coda);
+    fill.style.width = sc.actsDone >= i ? `${a.coverage * 100}%` : '0';
+  });
+  const focus = sc.coda ? $('b-script') : sc.actsDone >= 0 ? actNodes[sc.actsDone][0] : null;
+  if (focus && focus !== lastFocus && playing) { lastFocus = focus; focus.scrollIntoView({ block: sc.coda ? 'end' : 'nearest', behavior: reduce ? 'auto' : 'smooth' }); }
+  $('b-break').classList.toggle('on', sc.coda);
+  $('b-script').classList.toggle('on', sc.coda);
+
+  if (sc.t < tGrow0) surtitle('Overture', `${N - 1} packages, ${M} tubes. Before it learns anything, the organism reaches everywhere.`);
+  else if (sc.gp < 0.45) surtitle('The organism feeds', `${vulnCount} vulnerable packages are food. Each pulls current, by severity, toward your project.`);
+  else if (sc.t < tRit0) surtitle('The organism chooses', `Unfed tubes starve. Rival routes compete; the stronger one thickens. ${alive} of ${M} tubes still carry current.`);
+  else if (!sc.coda) {
+    const a = S.acts[sc.actsDone];
+    const sealed = a.items.filter((it) => it.fixed).length;
+    surtitle(`Act ${ROMAN[sc.actsDone] ?? sc.actsDone + 1}`, `${a.name}: the organism's ${['heaviest', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh'][sc.actsDone] ?? 'next'} entrance. ${sealed} package${sealed === 1 ? '' : 's'} sealed in gold. ${Math.round(a.coverage * 100)}% closed.`);
+  } else if (S.unfixed.length) surtitle('Coda', `${Math.round(S.coverage * 100)}% closed in ${nActs} acts. ${S.unfixed.length} cannot be fixed yet. The break is kept on the record, not hidden.`);
+  else surtitle('Coda', `${Math.round(S.coverage * 100)}% of the vulnerable surface closed in ${nActs} acts. The script is in the playbill.`);
+}
+
+/* ── playback ─────────────────────────────────────────────────────── */
+let t = reduce ? TOTAL : 0, playing = !reduce;
+const scrub = $('scrub'), play = $('play');
+const setPlaying = (p) => { playing = p; play.textContent = p ? '❚❚' : '▶'; play.setAttribute('aria-label', p ? 'Pause' : 'Play'); };
+setPlaying(playing);
+function frame(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+  if (playing) { t += dt; if (t >= TOTAL) { t = TOTAL; setPlaying(false); } scrub.value = Math.round((t / TOTAL) * 1000); }
+  const sc = sceneAt(t);
+  draw(sc, playing ? dt : 0); chrome(sc);
+  requestAnimationFrame(frame);
+}
+scrub.addEventListener('input', () => { t = (scrub.value / 1000) * TOTAL; setPlaying(false); });
+play.addEventListener('click', () => { if (t >= TOTAL) t = 0; setPlaying(!playing); });
+addEventListener('keydown', (e) => {
+  if (e.target instanceof HTMLInputElement && e.key !== ' ') return;
+  if (e.key === ' ') { e.preventDefault(); if (t >= TOTAL) t = 0; setPlaying(!playing); }
+  else if (e.key === 'ArrowRight') { t = Math.min(TOTAL, t + 1); }
+  else if (e.key === 'ArrowLeft') { t = Math.max(0, t - 1); }
+  else if (e.key === 'r' || e.key === 'R') { t = 0; setPlaying(true); }
+  else if (e.key === 'h' || e.key === 'H') { document.body.classList.toggle('clean'); requestAnimationFrame(layout); }
+  else if (/^[1-9]$/.test(e.key) && +e.key <= nActs) { t = tRit0 + (+e.key - 1) * T_ACT + T_ACT * 0.95; setPlaying(false); }
+});
+const qs = new URLSearchParams(location.search);
+if (qs.has('clean')) document.body.classList.add('clean');
+// ?t=<seconds> seeks and holds — for thumbnails and stills
+if (qs.has('t')) { t = Math.max(0, Math.min(TOTAL, Number.parseFloat(qs.get('t')) || 0)); setPlaying(false); scrub.value = Math.round((t / TOTAL) * 1000); }
+
+// hover: name, version, what it carries
+const tip = $('tip');
+cv.addEventListener('mousemove', (ev) => {
+  const r = cv.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top;
+  let best = -1, bd = 12 * 12;
+  for (let v = 0; v < N; v++) { const dx = px[v] - x, dy = py[v] - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = v; } }
+  hover = best;
+  if (best < 0) { tip.style.display = 'none'; return; }
+  const [name, ver, dev] = S.nodes[best];
+  tip.textContent = '';
+  tip.append(el('b', null, best === 0 ? `${name} — your project` : `${name} ${ver}`));
+  if (dev) tip.append(el('div', null, 'dev dependency'));
+  tip.append(el('div', null, best === 0 ? 'the heart: all flux drains here' : `depth ${depth[best]} · ${parents[best].length} parent${parents[best].length === 1 ? '' : 's'}`));
+  const fi = foodOf.get(best);
+  if (fi != null) {
+    const f = S.food[fi];
+    tip.append(el('div', 'sev', `${f.count} advisor${f.count === 1 ? 'y' : 'ies'} · worst ${f.label.toLowerCase()}`));
+    tip.append(el('div', null, `${f.top.id}: ${f.top.summary}`));
+    tip.append(el('div', null, f.fixed ? `fixed in ${f.fixed}` : 'no fix published'));
+  }
+  tip.style.display = 'block';
+  const tx = Math.min(x + 14, r.width - 310), ty = Math.min(y + 14, r.height - tip.offsetHeight - 8);
+  tip.style.left = `${tx}px`; tip.style.top = `${ty}px`;
+});
+cv.addEventListener('mouseleave', () => { hover = -1; tip.style.display = 'none'; });
+
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 120); });
+layout();
+document.fonts?.ready?.then(() => layout());
+requestAnimationFrame((n) => { lastT = n; frame(n); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+[
+  {
+    "method": "GET",
+    "path": "/health",
+    "status": 200,
+    "body": "{\"status\":\"ok\"}"
+  },
+  {
+    "method": "POST",
+    "path": "/mcp",
+    "status": 200,
+    "body": "event: message\ndata: {\"result\":{\"tools\":[{\"name\":\"adaptive_respond\",\"title\":\"Adaptive respond\",\"description\":\"Triage a query and produce a schema-validated adaptive response: a decision on whether to answer directly, ask clarifying questions, or both (mode: answer | clarify | hybrid), with confidence, ambiguity and risk metadata, a tldr, and optional sections, assumptions, alternatives, and risks. When mode is clarify or hybrid, answer the clarifying_questions and call the tool again with those answers in `context`.\",\"inputSchema\":{\"type\":\"object\",\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"properties\":{\"query\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":8000,\"description\":\"The question or task to triage and answer.\"},\"context\":{\"description\":\"Optional background for the query. On a follow-up call, include your answers to the clarifying_questions from the previous response here to continue the clarify loop.\",\"type\":\"string\",\"maxLength\":8000}},\"required\":[\"query\"]},\"outputSchema\":{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"properties\":{\"decision\":{\"type\":\"object\",\"properties\":{\"mode\":{\"type\":\"string\",\"enum\":[\"answer\",\"clarify\",\"hybrid\"]},\"confidence\":{\"type\":\"number\",\"minimum\":0,\"maximum\":1},\"ambiguity_level\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\"]},\"risk_level\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\"]}},\"required\":[\"mode\",\"confidence\",\"ambiguity_level\",\"risk_level\"],\"additionalProperties\":false},\"clarifying_questions\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"minLength\":1}},\"answer\":{\"type\":\"object\",\"properties\":{\"tldr\":{\"type\":\"string\",\"minLength\":1},\"sections\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"title\":{\"type\":\"string\",\"minLength\":1},\"content\":{\"type\":\"string\",\"minLength\":1}},\"required\":[\"title\",\"content\"],\"additionalProperties\":false}},\"assumptions\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"alternatives\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"condition\":{\"type\":\"string\",\"minLength\":1},\"approach\":{\"type\":\"string\",\"minLength\":1}},\"required\":[\"condition\",\"approach\"],\"additionalProperties\":false}},\"risks\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"tldr\"],\"additionalProperties\":false},\"meta\":{\"type\":\"object\",\"properties\":{\"intent_type\":{\"type\":\"string\",\"enum\":[\"informational\",\"analytical\",\"generative\",\"diagnostic\",\"comparative\"]},\"complexity_score\":{\"type\":\"number\",\"minimum\":0,\"maximum\":10},\"tokens_estimated\":{\"type\":\"number\",\"minimum\":0},\"schema_version\":{\"type\":\"string\",\"minLength\":1}},\"required\":[\"intent_type\",\"complexity_score\"],\"additionalProperties\":false}},\"required\":[\"decision\",\"answer\",\"meta\"],\"additionalProperties\":false,\"allOf\":[{\"if\":{\"properties\":{\"decision\":{\"properties\":{\"mode\":{\"enum\":[\"clarify\",\"hybrid\"]}},\"required\":[\"mode\"]}},\"required\":[\"decision\"]},\"then\":{\"required\":[\"clarifying_questions\"],\"properties\":{\"clarifying_questions\":{\"minItems\":1}}}}]}}]},\"jsonrpc\":\"2.0\",\"id\":1}\n\n"
+  },
+  {
+    "method": "POST",
+    "path": "/mcp",
+    "status": 403,
+    "body": "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32000,\"message\":\"Invalid Origin: attacker.example\"},\"id\":null}"
+  }
+]

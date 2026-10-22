@@ -12,6 +12,7 @@ This pass follows its single recommended entrance: `agents@0.28.1`.
 | Measure | Before | After | Reduction |
 |---|---:|---:|---:|
 | Package/version records in pnpm lockfile | 423 | 225 | 46.8% |
+| Fresh installed packages on macOS, same Node/pnpm | 271 | 120 | 55.7% |
 | Unique package names in lockfile | 386 | 223 | 42.2% |
 | Reachable snapshots (peer variants kept distinct) | 426 | 225 | 47.2% |
 | Production-reachable snapshots, including optional dependencies | 229 | 6 | 97.4% |
@@ -96,7 +97,12 @@ removed temporarily, the exact lockfile installed with lifecycle scripts
 disabled, and package.json restored. That exception and install output are
 preserved; it is not presented as a passing untouched frozen install.
 
-`after/checks.json` records final command exits. The project suite now has 101
+`after/checks.json` records final command exits. `after/clean-checks.json` and
+`after/clean-*.txt` record a fresh archive of commit `36a244d`, with no copied
+node_modules or dist directories. Every clean validation command passed. Earlier
+execution logs, including corrected fixture failures, remain under
+`after/initial-attempts/`; they do not represent the final result. Full authored-source
+lint also passes; only generated artifacts are excluded. The project suite now has 101
 passing assertions, including eight MCP boundary regression cases. Python
 regressions cover empty or invalid version evidence, nested vulnerable copies,
 shared dependency paths, workspace links, and SBOM provenance. The packed-package

@@ -1,0 +1,26 @@
+
+> adaptive-response@ test /private/var/folders/_b/cck3976d0_14dx_rt3mw2ckr0000gn/T/adaptive-response-clean-n1qd2w96
+> pnpm -r --filter './packages/**' --filter @adaptive-response/api test
+
+Scope: 5 of 7 workspace projects
+packages/schema test$ vitest run
+packages/schema test:  RUN  v5.0.5 /private/var/folders/_b/cck3976d0_14dx_rt3mw2ckr0000gn/T/adaptive-response-clean-n1qd2w96/packages/schema
+packages/schema test:  Test Files  1 passed (1)
+packages/schema test:       Tests  26 passed (26)
+packages/schema test:    Start at  17:31:02
+packages/schema test:    Duration  128ms (import 51%, transform 36%, tests 10%, worker 3%)
+packages/schema test: Done
+packages/core test$ vitest run
+packages/core test:  RUN  v5.0.5 /private/var/folders/_b/cck3976d0_14dx_rt3mw2ckr0000gn/T/adaptive-response-clean-n1qd2w96/packages/core
+packages/core test:  Test Files  1 passed (1)
+packages/core test:       Tests  24 passed (24)
+packages/core test:    Start at  17:31:02
+packages/core test:    Duration  122ms (import 35%, transform 32%, tests 31%, worker 2%)
+packages/core test: Done
+apps/api test$ vitest run
+apps/api test:  RUN  v5.0.5 /private/var/folders/_b/cck3976d0_14dx_rt3mw2ckr0000gn/T/adaptive-response-clean-n1qd2w96/apps/api
+apps/api test:  Test Files  2 passed (2)
+apps/api test:       Tests  51 passed (51)
+apps/api test:    Start at  17:31:03
+apps/api test:    Duration  513ms (tests 69%, import 17%, transform 13%, worker 1%)
+apps/api test: Done

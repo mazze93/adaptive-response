@@ -1,0 +1,86 @@
+{
+  "lockfile_sha256": "fc28e7a1c96de7c323b340c3c10cb585aad2621bd43e536d2bb042cbd587abfc",
+  "workspace_manifests": [
+    ".",
+    "apps/api",
+    "apps/demo",
+    "packages/core",
+    "packages/schema",
+    "packages/sdk",
+    "packages/ui"
+  ],
+  "package_version_records": 225,
+  "unique_package_names": 223,
+  "resolved_snapshots": 225,
+  "reachable_snapshots": 225,
+  "unreachable_snapshots": [],
+  "production_reachable_snapshots_including_optional": 6,
+  "direct_entrances": 13,
+  "entrance_manifests": {
+    "@biomejs/biome@2.5.15": [
+      "package.json"
+    ],
+    "@cloudflare/workers-types@5.20261018.1": [
+      "apps/api/package.json"
+    ],
+    "@modelcontextprotocol/server@2.3.1": [
+      "apps/api/package.json"
+    ],
+    "@types/react-dom@19.3.0(@types/react@19.3.0)": [
+      "apps/demo/package.json"
+    ],
+    "@types/react@19.3.0": [
+      "apps/demo/package.json",
+      "packages/ui/package.json"
+    ],
+    "@vitejs/plugin-react@6.1.2(@rolldown/plugin-babel@0.2.4(@babel/core@8.0.5)(@babel/runtime@7.29.7)(rolldown@1.2.14)(vite@8.3.4(esbuild@0.28.2)(yaml@2.9.1)))(vite@8.3.4(esbuild@0.28.2)(yaml@2.9.1))": [
+      "apps/demo/package.json"
+    ],
+    "react-dom@19.3.1(react@19.3.1)": [
+      "apps/demo/package.json"
+    ],
+    "react@19.3.1": [
+      "apps/demo/package.json",
+      "packages/ui/package.json"
+    ],
+    "typescript@7.0.2": [
+      "package.json",
+      "apps/api/package.json",
+      "apps/demo/package.json",
+      "packages/core/package.json",
+      "packages/schema/package.json",
+      "packages/sdk/package.json",
+      "packages/ui/package.json"
+    ],
+    "vite@8.3.4(esbuild@0.28.2)(yaml@2.9.1)": [
+      "apps/demo/package.json"
+    ],
+    "vitest@5.0.5(vite@8.3.4(esbuild@0.28.2)(yaml@2.9.1))": [
+      "apps/api/package.json",
+      "packages/core/package.json",
+      "packages/schema/package.json"
+    ],
+    "wrangler@4.151.1(@cloudflare/workers-types@5.20261018.1)": [
+      "apps/api/package.json"
+    ],
+    "zod@4.6.7": [
+      "apps/api/package.json",
+      "packages/schema/package.json"
+    ]
+  },
+  "subtrees_package_versions_including_optional": {
+    "@biomejs/biome@2.5.15": 9,
+    "@cloudflare/workers-types@5.20261018.1": 1,
+    "@modelcontextprotocol/server@2.3.1": 3,
+    "@types/react-dom@19.3.0": 3,
+    "@types/react@19.3.0": 2,
+    "@vitejs/plugin-react@6.1.2": 108,
+    "react-dom@19.3.1": 3,
+    "react@19.3.1": 1,
+    "typescript@7.0.2": 21,
+    "vite@8.3.4": 68,
+    "vitest@5.0.5": 88,
+    "wrangler@4.151.1": 92,
+    "zod@4.6.7": 1
+  }
+}

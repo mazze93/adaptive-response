@@ -1,0 +1,33 @@
+
+  ══════════════════════════════════════════════════════════════════════════
+     T H E A T R E   O F   D E P E N D E N C I E S
+     adaptive-response · a slime mold reads docs/audits/dependency-reduction-20261022/before/sbom.json
+  ══════════════════════════════════════════════════════════════════════════
+
+  THE TERRAIN     426 packages · 636 tubes · 16 entrances
+  THE FOOD        2 vulnerable packages · 2 advisories
+                  ■ 2 moderate
+  THE ORGANISM    converged in 129 steps · γ 1.8 · 5 of 636 tubes survive
+
+  THE RITUAL — one act close 100% of the vulnerable surface
+
+  ACT I     agents 0.28.1                     ━━━━━━━━━━━━━━━━━━ 100% +100
+            ├ hono                   4.13.8 → 4.13.11         MODERATE  1×    under agents › @modelcontextprotocol/sdk
+            ├ ip-address             10.7.1 → 10.7.4          MODERATE  1×    under agents › @modelcontextprotocol/sdk › express-rate-limit
+
+  STATE           ● CLOSED · healthy   100% closed by the ritual · 100% closable at all
+
+  THE SCRIPT — merge into package.json, then refresh the lockfile and run your tests
+
+    {
+      "dependencies": {},
+      "overrides": {
+        "agents": {
+          "hono": "^4.13.11",
+          "ip-address": "^10.7.4"
+        }
+      }
+    }
+
+  refresh (npm keeps existing lock entries on a plain install):
+    npm update hono ip-address

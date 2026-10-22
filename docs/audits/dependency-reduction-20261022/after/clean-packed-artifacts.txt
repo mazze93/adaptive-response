@@ -1,0 +1,2 @@
+{"node":"v24.21.0","esmImports":4,"engine":"passed","sdk":"passed","uiServerRender":"passed"}
+{"packed": ["@adaptive-response/schema", "@adaptive-response/core", "@adaptive-response/sdk", "@adaptive-response/ui"], "declarations": "passed", "workspace_links_used": false}
