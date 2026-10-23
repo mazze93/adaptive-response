@@ -29,8 +29,8 @@ real delete/rebuild/pack regressions plus packed ESM/declaration consumers, full
 source lint, zero-advisory pnpm audit, demo build, and Worker deployment dry-run.
 The existing Wrangler experimental-rate-limit-binding warning remains.
 
-`graph-invariance.json` confirms the generated SBOM is byte-for-byte equivalent
-as JSON to the previous validated Theatre after-state. The lockfile remains
+`graph-invariance.json` confirms the generated SBOM has identical parsed JSON
+records to the previous validated Theatre after-state. The lockfile remains
 unchanged, with 225 package/version entries; these review fixes add no packages.
 
 ## Delivery boundary
@@ -46,3 +46,13 @@ for this repository. This follow-up ships repository/build/report fixes; it
 does not create an unauthenticated new public Worker or publish npm packages.
 GitHub PR/commit state and the final local HEAD/index checks are the delivery
 receipts; a passing dry-run alone is not presented as a live deployment.
+
+PR [#36](https://github.com/mazze93/adaptive-response/pull/36) merged the fixes
+and their regression tests at `274d76e157dcc1cee11c40e812e8f371bc0b5b29`.
+CI, Dependency Audit and CodeQL passed before merge; optional Greptile review
+was pending. The original checkout was fast-forwarded to that main commit,
+its frozen dependencies refreshed, and build, types, 101 project tests, 14
+Python regressions, all four delete/rebuild/pack cases and packed consumers
+passed there. Audit and GitHub's open Dependabot alert list were both empty.
+The two original staged prototype additions were verified unchanged in both
+the index and working tree. Subsequent receipt changes affect documentation only.
