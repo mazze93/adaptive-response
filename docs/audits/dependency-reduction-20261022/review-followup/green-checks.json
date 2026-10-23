@@ -1,0 +1,42 @@
+[
+  {
+    "check": "frozen-install",
+    "exit": 0
+  },
+  {
+    "check": "build",
+    "exit": 0
+  },
+  {
+    "check": "typecheck",
+    "exit": 0
+  },
+  {
+    "check": "project-tests",
+    "exit": 0
+  },
+  {
+    "check": "dependency-regressions",
+    "exit": 0
+  },
+  {
+    "check": "packed-rebuild-consumers",
+    "exit": 0
+  },
+  {
+    "check": "lint",
+    "exit": 0
+  },
+  {
+    "check": "audit",
+    "exit": 0
+  },
+  {
+    "check": "worker-dry-run",
+    "exit": 0
+  },
+  {
+    "check": "demo-build",
+    "exit": 0
+  }
+]

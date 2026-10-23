@@ -1,0 +1,13 @@
+
+> adaptive-response@ build /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022
+> pnpm -r --filter './packages/**' build
+
+Scope: 4 of 7 workspace projects
+packages/schema build$ node ../../scripts/build-package.mjs schema
+packages/schema build: Done
+packages/core build$ node ../../scripts/build-package.mjs core
+packages/sdk build$ node ../../scripts/build-package.mjs sdk
+packages/sdk build: Done
+packages/core build: Done
+packages/ui build$ node ../../scripts/build-package.mjs ui
+packages/ui build: Done

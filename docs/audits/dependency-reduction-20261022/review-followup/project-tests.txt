@@ -1,0 +1,26 @@
+
+> adaptive-response@ test /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022
+> pnpm -r --filter './packages/**' --filter @adaptive-response/api test
+
+Scope: 5 of 7 workspace projects
+packages/schema test$ vitest run
+packages/schema test:  RUN  v5.0.5 /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/packages/schema
+packages/schema test:  Test Files  1 passed (1)
+packages/schema test:       Tests  26 passed (26)
+packages/schema test:    Start at  22:24:38
+packages/schema test:    Duration  125ms (import 77%, tests 13%, transform 6%, worker 3%)
+packages/schema test: Done
+packages/core test$ vitest run
+packages/core test:  RUN  v5.0.5 /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/packages/core
+packages/core test:  Test Files  1 passed (1)
+packages/core test:       Tests  24 passed (24)
+packages/core test:    Start at  22:24:38
+packages/core test:    Duration  116ms (import 50%, tests 36%, transform 11%, worker 3%)
+packages/core test: Done
+apps/api test$ vitest run
+apps/api test:  RUN  v5.0.5 /Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/apps/api
+apps/api test:  Test Files  2 passed (2)
+apps/api test:       Tests  51 passed (51)
+apps/api test:    Start at  22:24:38
+apps/api test:    Duration  625ms (tests 81%, import 15%, transform 3%, worker 1%)
+apps/api test: Done

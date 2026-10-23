@@ -125,3 +125,10 @@ version evidence. Security updates are explicitly grouped to reduce PR noise.
 GitHub's default-branch alerts only change after the branch reaches `main` and
 GitHub rescans. A clean branch audit does not mean the default branch or a
 previous deployment has already changed.
+
+## Review corrections and shipping follow-up
+
+The owner's subsequent shipping request includes the two final review findings.
+Their reproductions, fixes, and updated regression checks are recorded in
+[review-followup/README.md](review-followup/README.md). The original dated
+before/after evidence above remains intact.

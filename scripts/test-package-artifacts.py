@@ -6,6 +6,7 @@ downloads, workspace package links, or new dependencies. Build packages first.
 """
 
 import json
+import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -21,6 +22,50 @@ def run(args, cwd=ROOT):
     if result.returncode:
         raise RuntimeError(f"{args}\n{result.stdout}\n{result.stderr}")
     return result.stdout
+
+
+def verify_deleted_module_is_not_packed(name):
+    """Reproduce a real source deletion in an isolated, previously built package."""
+    with tempfile.TemporaryDirectory(prefix="adaptive-response-rebuild-") as directory:
+        fixture = Path(directory)
+        for filename in ["package.json", "pnpm-workspace.yaml", "tsconfig.base.json"]:
+            shutil.copyfile(ROOT / filename, fixture / filename)
+        (fixture / "node_modules").symlink_to(ROOT / "node_modules", target_is_directory=True)
+        for sibling in PACKAGES:
+            package = fixture / "packages" / sibling
+            package.mkdir(parents=True)
+            shutil.copyfile(ROOT / "packages" / sibling / "package.json", package / "package.json")
+        package = fixture / "packages" / name
+        source = ROOT / "packages" / name
+        shutil.copytree(source / "src", package / "src")
+        for config in ["tsconfig.json", "tsconfig.build.json"]:
+            shutil.copyfile(source / config, package / config)
+        (package / "node_modules").symlink_to(source / "node_modules", target_is_directory=True)
+        helper = ROOT / "scripts/build-package.mjs"
+        if helper.exists():
+            (fixture / "scripts").mkdir()
+            shutil.copyfile(helper, fixture / "scripts/build-package.mjs")
+        probe = package / "src/__cleanup_probe__.ts"
+        probe.write_text("export const cleanupProbe = true;\n")
+        run(["pnpm", "-C", str(package), "build"], fixture)
+        outputs = [package / f"dist/__cleanup_probe__{suffix}"
+                   for suffix in [".js", ".js.map", ".d.ts", ".d.ts.map"]]
+        assert all(path.exists() for path in outputs), f"{name}: fixture never built"
+        probe.unlink()
+        run(["pnpm", "-C", str(package), "build"], fixture)
+        assert not any(path.exists() for path in outputs), f"{name}: deleted module outputs survived rebuild"
+        run(["pnpm", "-C", str(package), "pack", "--pack-destination", directory], fixture)
+        archives = list(fixture.glob("*.tgz"))
+        assert len(archives) == 1, f"{name}: expected one packed archive"
+        with tarfile.open(archives[0]) as archive:
+            assert not any("__cleanup_probe__" in member.name for member in archive), (
+                f"{name}: deleted module shipped in packed archive"
+            )
+
+
+for package_name in PACKAGES:
+    verify_deleted_module_is_not_packed(package_name)
+print(json.dumps({"deleted_module_rebuild_and_pack": list(PACKAGES), "result": "passed"}))
 
 
 with tempfile.TemporaryDirectory(prefix="adaptive-response-pack-") as directory:

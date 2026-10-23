@@ -111,6 +111,58 @@ snapshots:
         with self.assertRaisesRegex(ValueError, "Manifest/lock dependency mismatch"):
             export(self.root)
 
+    def test_manifest_group_missing_from_lock_fails(self):
+        self.write_lock()
+        path = self.root / "package.json"
+        manifest = json.loads(path.read_text())
+        manifest["optionalDependencies"] = {"new-optional": "1.0.0"}
+        path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, "Manifest/lock dependency mismatch"):
+            export(self.root)
+
+    def test_changed_manifest_specifiers_fail_for_every_group(self):
+        for group, name in [("dependencies", "entrance"), ("devDependencies", "test-tool")]:
+            with self.subTest(group=group):
+                self.set_manifest_range(group, name, "^99.0.0")
+                with self.assertRaisesRegex(ValueError, "specifier mismatch"):
+                    export(self.root)
+
+    def set_manifest_range(self, group, name, specifier):
+        self.write_lock()
+        manifest = {"name": "fixture", "dependencies": {"entrance": "1.0.0"},
+                    "devDependencies": {"test-tool": "2.0.0"}}
+        manifest[group][name] = specifier
+        (self.root / "package.json").write_text(json.dumps(manifest))
+
+    def test_changed_optional_specifier_fails(self):
+        lock = self.lock.replace("packages:\n", """    optionalDependencies:
+      shared:
+        specifier: ^3.0.0
+        version: 3.0.0
+packages:
+""")
+        self.write_lock(lock)
+        path = self.root / "package.json"
+        manifest = json.loads(path.read_text())
+        manifest["optionalDependencies"] = {"shared": "^3.0.0"}
+        path.write_text(json.dumps(manifest))
+        _, summary = export(self.root)
+        self.assertIn("shared@3.0.0", summary["entrance_manifests"])
+        manifest["optionalDependencies"]["shared"] = "^4.0.0"
+        path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, "specifier mismatch"):
+            export(self.root)
+
+    def test_missing_lock_specifier_fails(self):
+        self.write_lock(self.lock.replace("        specifier: 1.0.0\n", ""))
+        with self.assertRaisesRegex(ValueError, "specifier"):
+            export(self.root)
+
+    def test_missing_lock_version_fails(self):
+        self.write_lock(self.lock.replace("        version: 1.0.0(peer@1.0.0)\n", ""))
+        with self.assertRaisesRegex(ValueError, "lock entry"):
+            export(self.root)
+
     def test_stale_unreachable_snapshot_is_counted_but_never_invented_as_an_entrance(self):
         self.write_lock(self.lock + "  stale@1.0.0: {}\n")
         bom, summary = export(self.root)
