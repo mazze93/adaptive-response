@@ -14,8 +14,8 @@ Resume: read PLAN.md and DECISIONS.md, then inspect git status. Worktree: tools/
 - [x] PR 34 merge and final review verified (main a4aa326).
 - [x] Both review findings reproduced and fixed, with tracked regression tests.
 - [x] Follow-up acceptance checks; source fixes and tests ready for shipping commit.
-- [ ] Follow-up PR delivered and merged.
-- [ ] Original local checkout updated to final main; staged prototype blobs preserved.
-- [ ] Final remote alert and deployment status verified.
+- [x] Follow-up PR 36 delivered and merged at 274d76e.
+- [x] Original local checkout fast-forwarded to main 274d76e; frozen install, build, typecheck, 101 project tests, 14 dependency regressions, four rebuild/pack cases and packed consumers pass. Both staged prototype blobs preserved.
+- [x] GitHub has zero open Dependabot alerts; local audit has zero advisories. Configured Cloudflare Worker is absent from the authenticated account; no live deployment or npm release performed.
 
 Do not resume the abandoned Node-test-runner/demo-toolchain expansion. This pass follows Theatre's agents recommendation and the two review corrections. Deployment is separate from a Git merge; report the observed state.
