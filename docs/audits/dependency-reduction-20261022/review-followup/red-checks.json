@@ -1,0 +1,10 @@
+[
+  {
+    "check": "exporter-red",
+    "exit": 1
+  },
+  {
+    "check": "packaging-red",
+    "exit": 1
+  }
+]

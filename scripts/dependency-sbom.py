@@ -16,6 +16,9 @@ from pathlib import Path
 from urllib.parse import quote
 
 
+GROUPS = ("dependencies", "devDependencies", "optionalDependencies")
+
+
 def unquote(value):
     return value.strip().strip("'\"")
 
@@ -39,6 +42,8 @@ def export(root):
                 packages.append(key)
             elif section == "snapshots":
                 snapshots[key] = []
+            elif section == "importers":
+                importers[key]  # Keep even importers with no dependency groups.
             continue
         if section not in ("importers", "snapshots"):
             continue
@@ -46,17 +51,18 @@ def export(root):
         if match:
             group = match[1]
             continue
-        if group not in ("dependencies", "devDependencies", "optionalDependencies"):
+        if group not in GROUPS:
             continue
         if section == "importers":
             match = re.fullmatch(r"      (\S.*?):", line)
             if match:
                 dependency = unquote(match[1])
-            match = re.fullmatch(r"        version: (.+)", line)
+                importers[key][group][dependency] = {}
+            match = re.fullmatch(r"        (specifier|version): (.+)", line)
             if match:
                 if dependency is None:
-                    raise ValueError(f"Version without dependency: {line}")
-                importers[key][group][dependency] = unquote(match[1])
+                    raise ValueError(f"Lock entry without dependency: {line}")
+                importers[key][group][dependency][match[1]] = unquote(match[2])
         else:
             match = re.fullmatch(r"      (\S.*?): (.+)", line)
             if match:
@@ -70,10 +76,17 @@ def export(root):
         manifest = root / importer / "package.json"
         doc = json.loads(manifest.read_text())
         manifests[importer] = doc
-        for group, deps in groups.items():
-            if set(deps) != set(doc.get(group, {})):
+        for group in GROUPS:
+            deps = groups.get(group, {})
+            declared = doc.get(group, {})
+            if not isinstance(declared, dict) or set(deps) != set(declared):
                 raise ValueError(f"Manifest/lock dependency mismatch: {manifest} {group}")
-            for name, version in deps.items():
+            for name, entry in deps.items():
+                if not entry.get("version"):
+                    raise ValueError(f"Incomplete lock entry: {manifest} {group} {name}")
+                if entry.get("specifier") != declared[name]:
+                    raise ValueError(f"Manifest/lock specifier mismatch: {manifest} {group} {name}")
+                version = entry["version"]
                 if version.startswith("link:"):
                     target = (root / importer / version[5:]).resolve()
                     if target not in {(root / p).resolve() for p in importers}:
@@ -124,7 +137,8 @@ def export(root):
                "direct_entrances": len(roots),
                "entrance_manifests": {r: [f"{p}/package.json" if p != "." else "package.json"
                                          for p, groups in importers.items()
-                                         if any(f"{n}@{v}" == r for d in groups.values() for n, v in d.items())]
+                                         if any(f"{n}@{v['version']}" == r
+                                                for d in groups.values() for n, v in d.items())]
                                       for r in sorted(roots)},
                "subtrees_package_versions_including_optional": {
                    r.split("(", 1)[0]: len({v.split("(", 1)[0] for v in reachable([r])})

@@ -1,0 +1,75 @@
+test_checks_all_distinct_patched_versions (test_dependency_checks.EsbuildCheckTests.test_checks_all_distinct_patched_versions) ... ok
+test_empty_and_non_numeric_versions_cannot_pass (test_dependency_checks.EsbuildCheckTests.test_empty_and_non_numeric_versions_cannot_pass) ... ok
+test_empty_graph_cannot_pass (test_dependency_checks.EsbuildCheckTests.test_empty_graph_cannot_pass) ... ok
+test_nested_old_copy_cannot_hide_behind_patched_copy (test_dependency_checks.EsbuildCheckTests.test_nested_old_copy_cannot_hide_behind_patched_copy) ... ok
+test_changed_manifest_specifiers_fail_for_every_group (test_dependency_checks.SbomTests.test_changed_manifest_specifiers_fail_for_every_group) ... 
+  test_changed_manifest_specifiers_fail_for_every_group (test_dependency_checks.SbomTests.test_changed_manifest_specifiers_fail_for_every_group) (group='dependencies') ... FAIL
+  test_changed_manifest_specifiers_fail_for_every_group (test_dependency_checks.SbomTests.test_changed_manifest_specifiers_fail_for_every_group) (group='devDependencies') ... FAIL
+test_changed_optional_specifier_fails (test_dependency_checks.SbomTests.test_changed_optional_specifier_fails) ... FAIL
+test_manifest_group_missing_from_lock_fails (test_dependency_checks.SbomTests.test_manifest_group_missing_from_lock_fails) ... FAIL
+test_manifest_lock_mismatch_fails (test_dependency_checks.SbomTests.test_manifest_lock_mismatch_fails) ... ok
+test_missing_lock_specifier_fails (test_dependency_checks.SbomTests.test_missing_lock_specifier_fails) ... FAIL
+test_missing_lock_version_fails (test_dependency_checks.SbomTests.test_missing_lock_version_fails) ... FAIL
+test_missing_transitive_target_fails (test_dependency_checks.SbomTests.test_missing_transitive_target_fails) ... ok
+test_preserves_peer_identity_and_every_shared_carrier (test_dependency_checks.SbomTests.test_preserves_peer_identity_and_every_shared_carrier) ... ok
+test_stale_unreachable_snapshot_is_counted_but_never_invented_as_an_entrance (test_dependency_checks.SbomTests.test_stale_unreachable_snapshot_is_counted_but_never_invented_as_an_entrance) ... ok
+test_unmodeled_workspace_link_fails (test_dependency_checks.SbomTests.test_unmodeled_workspace_link_fails) ... ok
+
+======================================================================
+FAIL: test_changed_manifest_specifiers_fail_for_every_group (test_dependency_checks.SbomTests.test_changed_manifest_specifiers_fail_for_every_group) (group='dependencies')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/scripts/test_dependency_checks.py", line 127, in test_changed_manifest_specifiers_fail_for_every_group
+    with self.assertRaisesRegex(ValueError, "specifier mismatch"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_changed_manifest_specifiers_fail_for_every_group (test_dependency_checks.SbomTests.test_changed_manifest_specifiers_fail_for_every_group) (group='devDependencies')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/scripts/test_dependency_checks.py", line 127, in test_changed_manifest_specifiers_fail_for_every_group
+    with self.assertRaisesRegex(ValueError, "specifier mismatch"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_changed_optional_specifier_fails (test_dependency_checks.SbomTests.test_changed_optional_specifier_fails)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/scripts/test_dependency_checks.py", line 153, in test_changed_optional_specifier_fails
+    with self.assertRaisesRegex(ValueError, "specifier mismatch"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_manifest_group_missing_from_lock_fails (test_dependency_checks.SbomTests.test_manifest_group_missing_from_lock_fails)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/scripts/test_dependency_checks.py", line 120, in test_manifest_group_missing_from_lock_fails
+    with self.assertRaisesRegex(ValueError, "Manifest/lock dependency mismatch"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_missing_lock_specifier_fails (test_dependency_checks.SbomTests.test_missing_lock_specifier_fails)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/scripts/test_dependency_checks.py", line 158, in test_missing_lock_specifier_fails
+    with self.assertRaisesRegex(ValueError, "specifier"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_missing_lock_version_fails (test_dependency_checks.SbomTests.test_missing_lock_version_fails)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/scripts/test_dependency_checks.py", line 163, in test_missing_lock_version_fails
+    with self.assertRaisesRegex(ValueError, "lock entry"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.008s
+
+FAILED (failures=6)

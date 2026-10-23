@@ -9,6 +9,13 @@ Last updated: 2026-10-22
 
 Resume: read PLAN.md and DECISIONS.md, then inspect git status. Worktree: tools/worktrees/adaptive-response-dependency-reduction-20261022. Base: 2a4f3d2. Never reset the original checkout's staged prototypes.
 
-First cut: agents removed, tsup replaced by tsc; 423 → 225 package/version records. Existing 93 tests pass on Node 24.21.0. Continue with Node test runner and minimal esbuild demo.
+## Active shipping follow-up
 
-Final result: follow Theatre’s agents entrance recommendation; no advisories remain in the branch’s pnpm/OSV scans. Fresh-copy acceptance and full source lint pass. See the dated audit report for canonical counts, commands, source tests, and proof limits. Branch publication follows this checkpoint commit; no main merge or deployment.
+- [x] PR 34 merge and final review verified (main a4aa326).
+- [x] Both review findings reproduced and fixed, with tracked regression tests.
+- [x] Follow-up acceptance checks; source fixes and tests ready for shipping commit.
+- [ ] Follow-up PR delivered and merged.
+- [ ] Original local checkout updated to final main; staged prototype blobs preserved.
+- [ ] Final remote alert and deployment status verified.
+
+Do not resume the abandoned Node-test-runner/demo-toolchain expansion. This pass follows Theatre's agents recommendation and the two review corrections. Deployment is separate from a Git merge; report the observed state.

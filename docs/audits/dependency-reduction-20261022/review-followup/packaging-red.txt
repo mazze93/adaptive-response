@@ -1,0 +1,10 @@
+npm notice run npx
+npm notice run 'pnpm' exec python3 scripts/test-package-artifacts.py
+Traceback (most recent call last):
+  File "/Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/scripts/test-package-artifacts.py", line 67, in <module>
+    verify_deleted_module_is_not_packed(package_name)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/daedalus/Projects/tools/worktrees/adaptive-response-dependency-reduction-20261022/scripts/test-package-artifacts.py", line 56, in verify_deleted_module_is_not_packed
+    assert not any(path.exists() for path in outputs), f"{name}: deleted module outputs survived rebuild"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: schema: deleted module outputs survived rebuild
