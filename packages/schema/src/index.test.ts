@@ -7,11 +7,14 @@
  *   - Field-level constraint violations (confidence out of range, empty strings, etc.)
  *   - safeValidateAdaptiveResponse never throws
  *   - validateAdaptiveResponse throws on bad input
+ *   - Hand-authored self-referential fixture stays valid against the live contract
  */
 
 import { describe, expect, it } from "vitest";
+import selfReferentialFixture from "./fixtures/self-referential.json" with { type: "json" };
 import type { AdaptiveResponse } from "./index.js";
 import {
+  SCHEMA_VERSION,
   safeValidateAdaptiveResponse,
   toAdaptiveResponseJsonSchema,
   validateAdaptiveResponse,
@@ -305,5 +308,22 @@ describe("toAdaptiveResponseJsonSchema", () => {
     const b = toAdaptiveResponseJsonSchema();
     expect(a).not.toBe(b);
     expect(a).toEqual(b);
+  });
+});
+
+// ─── Self-referential dogfood fixture ─────────────────────────────────────────
+
+describe("fixtures/self-referential.json", () => {
+  it("validates through AdaptiveResponseSchema (hand-authored dogfood)", () => {
+    const parsed = validateAdaptiveResponse(selfReferentialFixture);
+    expect(parsed.decision.mode).toBe("answer");
+    expect(parsed.answer.tldr.length).toBeGreaterThan(0);
+    expect(parsed.answer.sections?.length).toBeGreaterThan(0);
+    expect(parsed.meta.schema_version).toBe(SCHEMA_VERSION);
+  });
+
+  it("rejects the fixture if an unknown key is introduced (.strict)", () => {
+    const withExtra = { ...selfReferentialFixture, unexpected: true };
+    expect(safeValidateAdaptiveResponse(withExtra).success).toBe(false);
   });
 });

@@ -1,0 +1,58 @@
+{
+  "decision": {
+    "mode": "answer",
+    "confidence": 0.94,
+    "ambiguity_level": "low",
+    "risk_level": "low"
+  },
+  "answer": {
+    "tldr": "This object is an AdaptiveResponse about Adaptive Response: it was authored by hand and accepted only after AdaptiveResponseSchema.strict() (+ clarify/hybrid superRefine) validated every field.",
+    "sections": [
+      {
+        "title": "The contract that validated this object",
+        "content": "AdaptiveResponse is defined once in @adaptive-response/schema (SCHEMA_VERSION 0.1.0). Required roots are decision, answer, and meta. All object schemas use .strict(), so unknown keys fail. decision.mode is answer|clarify|hybrid; confidence is 0–1; ambiguity_level and risk_level are low|medium|high. answer.tldr is always required (1–2 sentences of substance). Optional answer fields: sections[{title,content}], assumptions[], alternatives[{condition,approach}], risks[]. meta.intent_type is informational|analytical|generative|diagnostic|comparative; complexity_score is 0–10. Engine-owned optional meta fields tokens_estimated and schema_version may be stamped after validation."
+      },
+      {
+        "title": "Cross-field rule encoded in this shape",
+        "content": "When mode is clarify or hybrid, clarifying_questions must be a non-empty array of non-empty strings. That invariant lives in AdaptiveResponseSchema.superRefine and is mirrored in toAdaptiveResponseJsonSchema() as an allOf if/then so the Anthropic tool input_schema cannot drift. This self-description uses mode=answer, so clarifying_questions is omitted — including an empty array would still be valid for answer mode, but the contracted happy path for a confident answer is to leave it absent."
+      },
+      {
+        "title": "How the monorepo enforces the same object everywhere",
+        "content": "schema → core → api; schema → sdk → ui; demo consumes sdk+ui. core forces Claude to call emit_adaptive_response with input_schema derived from toAdaptiveResponseJsonSchema(), runs safeValidateAdaptiveResponse, allows one repair pass, then stamps tokens_estimated and schema_version. HTTP /v1/respond and MCP /mcp both call the same engine. The SDK re-validates on the client; UI components trust props. This hand-authored instance is the same JSON shape those lanes accept."
+      },
+      {
+        "title": "Why this response is self-referential",
+        "content": "The subject of answer.tldr and every section is the AdaptiveResponse contract and pipeline. The vehicle is that contract: producing this document required satisfying the schema that the product uses to constrain model output. Dogfooding the schema means the description of Adaptive Response is itself a valid AdaptiveResponse — if the schema rejected this object, the product's source-of-truth claim would be broken for human-authored data too."
+      }
+    ],
+    "assumptions": [
+      "Readers treat @adaptive-response/schema as the single source of truth (no duplicated AdaptiveResponse types elsewhere).",
+      "Policy thresholds (when to choose answer vs clarify vs hybrid, tldr length) live in core's SYSTEM_PROMPT and must stay aligned with schema semantics.",
+      "Engine-injected meta fields are stripped from the model-facing tool schema and may be absent on hand-authored instances until the engine stamps them."
+    ],
+    "alternatives": [
+      {
+        "condition": "The query about Adaptive Response were underspecified (e.g. 'is it ready?')",
+        "approach": "Emit mode=clarify or hybrid with non-empty clarifying_questions, still keeping answer.tldr, because AdaptiveResponse always carries an answer object even when routing toward questions."
+      },
+      {
+        "condition": "You need the same contract outside TypeScript",
+        "approach": "Call toAdaptiveResponseJsonSchema() and validate against the returned draft-2020-12 JSON Schema, including the allOf clarify/hybrid conditional."
+      },
+      {
+        "condition": "You only want in-process generation without the Worker",
+        "approach": "Pass {query, context?} to generateAdaptiveResponse from @adaptive-response/core with an apiKey in config; core never reads env."
+      }
+    ],
+    "risks": [
+      "Duplicating AdaptiveResponse fields outside @adaptive-response/schema will desync Worker, SDK, and UI from the contract that accepted this object.",
+      "Skipping .strict() when extending schemas lets unknown keys through and breaks the model-must-match-contract invariant.",
+      "Changing clarify/hybrid policy in SYSTEM_PROMPT without updating superRefine / JSON Schema allOf lets shape and policy drift."
+    ]
+  },
+  "meta": {
+    "intent_type": "informational",
+    "complexity_score": 5,
+    "schema_version": "0.1.0"
+  }
+}
