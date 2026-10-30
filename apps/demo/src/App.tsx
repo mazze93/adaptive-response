@@ -10,7 +10,7 @@ import type { AdaptiveResponse } from "@adaptive-response/sdk";
 import { AdaptiveClient, validateAdaptiveResponse } from "@adaptive-response/sdk";
 import { ResponseRenderer } from "@adaptive-response/ui";
 import { useState, useTransition } from "react";
-import selfReferentialFixture from "../../../packages/schema/fixtures/self-referential.json";
+import selfReferentialFixture from "../../../packages/schema/src/fixtures/self-referential.json";
 
 // ─── API client ──────────────────────────────────────────────────────────────
 // During `pnpm dev:demo` the Vite proxy forwards /v1 → localhost:8787 (Worker).
