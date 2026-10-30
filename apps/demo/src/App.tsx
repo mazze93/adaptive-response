@@ -2,13 +2,15 @@
  * Demo app — sends a query to /v1/respond (proxied to the local Worker)
  * and renders the result with @adaptive-response/ui.
  *
- * Includes a static fixture so the UI works without a running API.
+ * Boots with the hand-authored self-referential AdaptiveResponse fixture from
+ * @adaptive-response/schema so the UI dogfoods the contract without a live API.
  */
 
 import type { AdaptiveResponse } from "@adaptive-response/sdk";
-import { AdaptiveClient } from "@adaptive-response/sdk";
+import { AdaptiveClient, validateAdaptiveResponse } from "@adaptive-response/sdk";
 import { ResponseRenderer } from "@adaptive-response/ui";
 import { useState, useTransition } from "react";
+import selfReferentialFixture from "../../../packages/schema/fixtures/self-referential.json";
 
 // ─── API client ──────────────────────────────────────────────────────────────
 // During `pnpm dev:demo` the Vite proxy forwards /v1 → localhost:8787 (Worker).
@@ -19,32 +21,10 @@ const client = new AdaptiveClient({
 });
 
 // ─── Static fixture ──────────────────────────────────────────────────────────
-// Rendered immediately so the UI is never blank; replaced on first API call.
+// Self-referential AdaptiveResponse — validated at module load so a drifted
+// fixture fails the demo boot rather than rendering invalid props.
 
-const FIXTURE: AdaptiveResponse = {
-  decision: {
-    mode: "answer",
-    confidence: 0.92,
-    ambiguity_level: "low",
-    risk_level: "low",
-  },
-  answer: {
-    tldr: "This is a fixture response — submit a query above to call the live API.",
-    sections: [
-      {
-        title: "How it works",
-        content:
-          "Type a query and press ⌘ + Enter. The request goes to the Cloudflare Worker, which calls the Anthropic API with a structured-output prompt. The JSON response is validated against the Zod schema in @adaptive-response/schema and rendered here.",
-      },
-    ],
-    assumptions: ["The Worker is running on localhost:8787 (or VITE_API_URL is set)."],
-    risks: ["API key not configured → 502 from the Worker."],
-  },
-  meta: {
-    intent_type: "informational",
-    complexity_score: 2,
-  },
-};
+const FIXTURE: AdaptiveResponse = validateAdaptiveResponse(selfReferentialFixture);
 
 // ─── Component ───────────────────────────────────────────────────────────────
 

@@ -7,11 +7,16 @@
  *   - Field-level constraint violations (confidence out of range, empty strings, etc.)
  *   - safeValidateAdaptiveResponse never throws
  *   - validateAdaptiveResponse throws on bad input
+ *   - Hand-authored self-referential fixture stays valid against the live contract
  */
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { AdaptiveResponse } from "./index.js";
 import {
+  SCHEMA_VERSION,
   safeValidateAdaptiveResponse,
   toAdaptiveResponseJsonSchema,
   validateAdaptiveResponse,
@@ -305,5 +310,28 @@ describe("toAdaptiveResponseJsonSchema", () => {
     const b = toAdaptiveResponseJsonSchema();
     expect(a).not.toBe(b);
     expect(a).toEqual(b);
+  });
+});
+
+// ─── Self-referential dogfood fixture ─────────────────────────────────────────
+
+describe("fixtures/self-referential.json", () => {
+  const fixturePath = join(
+    dirname(fileURLToPath(import.meta.url)),
+    "../fixtures/self-referential.json",
+  );
+  const raw = JSON.parse(readFileSync(fixturePath, "utf8")) as unknown;
+
+  it("validates through AdaptiveResponseSchema (hand-authored dogfood)", () => {
+    const parsed = validateAdaptiveResponse(raw);
+    expect(parsed.decision.mode).toBe("answer");
+    expect(parsed.answer.tldr.length).toBeGreaterThan(0);
+    expect(parsed.answer.sections?.length).toBeGreaterThan(0);
+    expect(parsed.meta.schema_version).toBe(SCHEMA_VERSION);
+  });
+
+  it("rejects the fixture if an unknown key is introduced (.strict)", () => {
+    const withExtra = { ...(raw as object), unexpected: true };
+    expect(safeValidateAdaptiveResponse(withExtra).success).toBe(false);
   });
 });
